@@ -33,10 +33,10 @@ int bumount(){
  * Using:   lseek, write
  */
 int bwrite(unsigned int n_block, const void *buf){
-    if(lseek(descriptor, BLOCKSIZE, SEEK_SET) == -1){
+    if(lseek(descriptor, n_block*BLOCKSIZE, SEEK_SET) == -1){
         return -1;
     }
-    return write(descriptor, buf, n_block*BLOCKSIZE);
+    return write(descriptor, buf, BLOCKSIZE);
 }
 
 /*
@@ -48,7 +48,7 @@ int bwrite(unsigned int n_block, const void *buf){
  * Using:   lseek, read  
  */
 int bread(unsigned int n_block, void *buf){
-    if(lseek(descriptor, BLOCKSIZE, SEEK_SET+n_block*BLOCKSIZE) == -1){ // maybe w/out SEEK_SET ??
+    if(lseek(descriptor, n_block*BLOCKSIZE, SEEK_SET) == -1){ // maybe w/out SEEK_SET ??
         return -1;
     }
     return read(descriptor, buf, BLOCKSIZE);

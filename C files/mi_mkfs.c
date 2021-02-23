@@ -8,7 +8,7 @@ int main(int argc, char **argsv){
         } 
         char buffer[BLOCKSIZE];
         memset(buffer, 0, sizeof(buffer));
-
+        
         for(int i = 0; i < atoi(argsv[2]); i++){
             if(bwrite(i, buffer) == -1){
                 fprintf(stderr, "Error while writting\n");
