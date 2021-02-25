@@ -10,6 +10,7 @@ static int descriptor = 0;
  * Using:   open 
  */
 int bmount(const char* path){
+    umask(000);
     descriptor = open(path, O_RDWR|O_CREAT, 0666);
     return descriptor; //Error should be handled by the user as this returns -1 in case of error
 }

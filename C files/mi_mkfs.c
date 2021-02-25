@@ -1,8 +1,8 @@
 #include "bloques.h"
 
 int main(int argc, char **argsv){
-    if(argc == 3){ // not enough arguments  
-        if(bmount(argsv[1]) == -1){//file paths are relative????
+    if(argc == 3){ // Not enough arguments  
+        if(bmount(argsv[1]) == -1){ // File paths are relative????
             fprintf(stderr,"Error while mounting\n");
             return -1;
         } 
