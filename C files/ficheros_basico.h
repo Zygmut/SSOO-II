@@ -19,7 +19,7 @@ typedef union _superbloque{
         unsigned int totInodos;
         //char padding[BLOCKSIZE-12*sizeof(unsigned int)];
     };
-    char padding[BLOCKSIZE];
+     char padding[BLOCKSIZE];
 }superbloque_t;
 
 
