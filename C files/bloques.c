@@ -10,7 +10,7 @@ static int descriptor = 0;
  * Using:   open 
  */
 int bmount(const char* path){
-    umask(000);
+    umask(000);     // Correct permissions rw-rw-rw
     descriptor = open(path, O_RDWR|O_CREAT, 0666);
     return descriptor; //Error should be handled by the user as this returns -1 in case of error
 }
@@ -28,7 +28,7 @@ int bumount(){
 /*
  * Escritura de UN bloque 
  * 
- * Input:   n_block -> Number of the block to write  
+ * Input:   n_block -> Number of th1e block to write  
  *          buf     -> Buffer to dump on write  
  * Output:  n_bytes written in case of success, -1 in case of error
  * Using:   lseek, write
