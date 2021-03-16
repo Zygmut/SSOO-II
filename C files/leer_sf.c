@@ -31,7 +31,7 @@ int main(int argc, char **argsv){
         int lastInodo = 0 ; 
         for(int i = SB.posPrimerBloqueAI; (i <= SB.posUltimoBloqueAI) && (lastInodo == 0); i++){ //Recorrido de todos los inodos
             for(int j = 0; j < (BLOCKSIZE/INODOSIZE); j++){ //Recorrido de cada uno de los inodos
-                inodos[j].tipo = 'l'; //Tipo l: Libre
+                // inodos[j].tipo = 'l'; //Tipo l: Libre
 
                 if(indexInodos < SB.totInodos){
                     inodos[j].punterosDirectos[0] = indexInodos; // Declaramos la conexion con el siguiente inodo

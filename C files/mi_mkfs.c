@@ -6,6 +6,16 @@ int main(int argc, char **argsv){
             fprintf(stderr,"Error while mounting\n");
             return -1;
         } 
+        char buffer[BLOCKSIZE];
+        memset(buffer, 0, sizeof(buffer));
+        
+        for(int i = 0; i < atoi(argsv[2]); i++){
+            if(bwrite(i, buffer) == -1){
+                fprintf(stderr, "Error while writting\n");
+                return -1;
+            }
+            memset(buffer, 0, sizeof(buffer));
+        }
         
         initSB(atoi(argsv[2]), atoi(argsv[2])/4);
         initMB();
