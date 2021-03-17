@@ -133,8 +133,34 @@ int initAI(){
      * Using:   none 
      */
     int escribir_bit(unsigned int nbloque, unsigned int bit){
-        SB.posPrimerBloqueMB;
-        return NULL;
+
+        int posbyte = nbloque / 8;
+        int posbit = nbloque % 8;
+        int nbloqueMB = posbyte / BLOCKSIZE;
+        int nbloqueabs =  SB.posPrimerBloqueMB + nbloqueMB;
+
+        unsigned char bufferMB[BLOCKSIZE]; 
+        posbyte = posbyte % BLOCKSIZE;
+        unsigned char mascara = 128;
+
+        mascara >>= posbit; //desplazamiento de bits a la derecha
+
+        if(bread(nbloqueabs, bufferMB) == -1){ //leemos bloque
+            return -1;
+        }  
+
+        if(bit == 1){
+            bufferMB[posbyte] | = mascara; //operador OR
+        }
+        else{
+            bufferMB[posbyte] & = ~mascara; //operador AND y NOT
+        }
+
+        if(bwrite(nbloqueabs, bufferMB) == -1){ //escribimos bloque
+            return -1;
+        }
+   
+        return 0;
     }
 
     /*
@@ -145,8 +171,29 @@ int initAI(){
      * Using:   none 
      */
     char leer_bit(unsigned int nbloque){
+        int posbyte = nbloque / 8;
+        int posbit = nbloque % 8;
+        int nbloqueMB = posbyte / BLOCKSIZE;
+        int nbloqueabs =  SB.posPrimerBloqueMB + nbloqueMB;
+        
+        unsigned char bufferMB[BLOCKSIZE]; 
+        posbyte = posbyte % BLOCKSIZE;
+        unsigned char mascara = 128;
 
-        return NULL;
+        if(bread(nbloqueabs, bufferMB) == -1){ //leemos bloque
+            return -1;
+        }  
+
+        mascara >>= posbit; //desplazamiento de bits a la derecha
+        mascara &= bufferMB[posbyte]; //operador and para bits
+        mascara >>= (7 - posbit);   //desplazamiento de bits a la derecha
+
+        if(mascara == 0){
+            return 0;
+        }
+        else{
+            return 1;
+        }
 
     }
 
@@ -158,8 +205,56 @@ int initAI(){
      * Using:   none 
      */
     int reservar_bloque(){
+        if(SB.cantInodosLibres == 0){
+            return -1; // ---------------------------------supongo que seria -1 no?-----------------------------------------------------
+        }
 
-        return NULL;
+        bool foundNotOccupied= false;
+
+        int posBloqueMB = SB.posPrimerBloqueMB;
+        unsigned int nbloque;
+        int posbyte = 0;
+        int posbit = 0;
+
+        unsigned char bufferMB[BLOCKSIZE]; 
+        unsigned char auxBufferMB[BLOCKSIZE]; 
+
+        unsigned char mascara = 128;
+
+        memset(auxBufferMB,255,BLOCKSIZE);
+        //localizamos bloque desocupado
+        while(!foundNotOccupied){
+            if(bread(posBloqueMB, bufferMB) == -1){ //leemos bloque
+                return -1;
+            } 
+            if(memcmp(bufferMB,auxBufferMB,BLOCKSIZE) != 0){//vemos si el bloque esta desocupado
+                foundNotOccupied = true;
+                break;
+            } 
+            posBloqueMB++;
+        }
+        //localizamos byte desocupado
+        for(int i = 0; i < BLOCKSIZE; i++ ){
+            if(bufferMB[i] != 255){ //si el byte no esta a 1 (ocupado)
+                posbyte = i;
+                break;
+            }
+        }
+        //localizamos el bit
+        while(bufferMB[posbyte] & mascara){
+            bufferMB <<= 1;
+            posbit++;
+        }
+
+        nbloque = ((posBloqueMB - SB.posPrimerBloqueMB)*BLOCKSIZE+posbyte)*8+posbit;
+
+        if(escribir_bit(nbloque, 1) == -1){ 
+            return -1;
+        }
+        sb.cantInodosLibres--;
+        memset(auxBufferMB,0,BLOCKSIZE);
+        bwrite(posSB, auxBufferMB);//-----------------------------------not really sure about this one, penultimo circulo de la funcion 3), grabamos buffer de 0s.....------
+        return nbloque;
     }
 
     /*
