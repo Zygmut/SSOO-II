@@ -30,8 +30,11 @@ int main(int argc, char **argsv){
         int indexInodos = SB.posPrimerInodoLibre + 1; // Cantidad de Inodos
         int lastInodo = 0 ; 
         for(int i = SB.posPrimerBloqueAI; (i <= SB.posUltimoBloqueAI) && (lastInodo == 0); i++){ //Recorrido de todos los inodos
+            if(bread(i, inodos) == -1){
+                fprintf(stderr, "Error while reading");
+                return -1;
+            }
             for(int j = 0; j < (BLOCKSIZE/INODOSIZE); j++){ //Recorrido de cada uno de los inodos
-                // inodos[j].tipo = 'l'; //Tipo l: Libre
 
                 if(indexInodos < SB.totInodos){
                     inodos[j].punterosDirectos[0] = indexInodos; // Declaramos la conexion con el siguiente inodo

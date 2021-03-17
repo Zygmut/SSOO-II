@@ -262,7 +262,7 @@ int reservar_bloque(){
         return -1;
     }
 
-    if(bwrite(posSB, auxBufferMB) == -1){ // Not really sure about this one (penultimo circulo de la funcion 3), grabamos buffer de 0s
+    if(bwrite(nbloque, auxBufferMB) == -1){ // Not really sure about this one (penultimo circulo de la funcion 3), grabamos buffer de 0s
         fprintf(stderr, "Error while writting\n");
         return -1;
     }     
@@ -274,11 +274,23 @@ int reservar_bloque(){
  * Libera un bloque determinado por nbloque
  * 
  * Input:   nbloque     => posicion de memoria a liberar
- * Output:  Nº del bloque liberado
+ * Output:  Nº del bloque liberado, -1 si ha encontrado un error
  * Using:   none 
  */    
 int liberar_bloque(unsigned int nbloque){
-    return NULL;
+
+    if(escribir_bit(nbloque, 0) == -1){
+        fprintf(stderr, "Error while writting a bit\n");
+        return -1;
+    }
+
+    if(bread(0, &SB) == -1){
+        fprintf(stderr, "Error while reading\n");
+        return -1;
+    }
+
+    SB.cantBloquesLibres++;
+    return nbloque;
 }
 
 /*
@@ -290,8 +302,27 @@ int liberar_bloque(unsigned int nbloque){
  * Using:   none 
  */  
 int escribir_inodo(unsigned int ninodo, inodo_t inodo){
+    if(bread(0, &SB) == -1){
+        fprintf(stderr, "Error while reading SB\n");
+        return -1;
+    }
 
-    return NULL;
+    int posBloque = ninodo / (BLOCKSIZE/INODOSIZE); // Numero de veces a moverse
+    int posInodo = ninodo % (BLOCKSIZE/INODOSIZE); //Posición del inodo dentro del bloque 
+    inodo_t inodos [BLOCKSIZE/INODOSIZE];
+
+    if(bread(SB.posPrimerBloqueAI + posBloque, inodos) == -1){ //Leer el bloque de inodos correspondiente 
+        fprintf(stderr,"Error while reading\n");
+        return -1;
+    }
+    inodos[posInodo] = inodo;
+
+    if(bwrite(SB.posPrimerBloqueAI + posBloque, inodos) == -1){
+        fprintf(stderr, "Error while writting\n");
+        return -1;
+    }
+    
+    return 0;
 }
 
 /*
@@ -303,7 +334,23 @@ int escribir_inodo(unsigned int ninodo, inodo_t inodo){
  * Using:   none 
  */ 
 int leer_inodo(unsigned int ninodo, inodo_t *inodo){
-    return NULL;
+    if(bread(0, &SB) == -1){
+        fprintf(stderr, "Error while reading SB\n");
+        return -1;
+    }
+
+    int posBloque = ninodo / (BLOCKSIZE/INODOSIZE); // Numero de veces a moverse
+    int posInodo = ninodo % (BLOCKSIZE/INODOSIZE); // Posición del inodo dentro del bloque 
+    inodo_t inodos [BLOCKSIZE/INODOSIZE];
+
+    if(bread(SB.posPrimerBloqueAI + posBloque, inodos) == -1){ //Leer el bloque de inodos correspondiente 
+        fprintf(stderr,"Error while reading\n");
+        return -1;
+    }
+
+    inodo = &inodos[posInodo]; //
+
+    return 0;
 }
 
 /*
@@ -315,5 +362,11 @@ int leer_inodo(unsigned int ninodo, inodo_t *inodo){
  * Using:   none 
  */ 
 int reservar_inodo(unsigned char tipo, unsigned char permisos){
-    return NULL;
+    // Encontrar el primer inodo libre
+
+    // Reserva dicho inodo 
+
+    // Actualizar la lista enlazada
+
+    // Devolver el numero del inodo
 }
