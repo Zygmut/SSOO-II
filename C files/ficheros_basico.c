@@ -246,7 +246,7 @@ int reservar_bloque(){
     }
    
     while(bufferMB[posbyte] & mascara){  // Localizamos el bit
-        *bufferMB <<= 1; // *bufferMB == Contenido de bufferMB ???
+        bufferMB[posbyte] <<= 1;
         posbit++;
     }
 
