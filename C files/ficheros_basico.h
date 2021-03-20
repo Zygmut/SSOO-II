@@ -1,7 +1,10 @@
 #include "bloques.h"
-#include "limits.h" // Valor muy grande para el enlace de Inodos
+#include <limits.h> // Valor muy grande para el enlace de Inodos
+#include <time.h>
 
 #define INODOSIZE 128
+#define posSB 0
+#define tamSB 1
 
 typedef union superbloque{
     struct{
@@ -38,7 +41,7 @@ typedef union inodo{
         unsigned int numBloquesOcupados;
 
         unsigned int punterosDirectos[12];
-        unsigned int punterosInderectos[3];
+        unsigned int punterosIndirectos[3];
 
         // char padding[INODOSIZE - 8*sizeof(unsigned char) - 3*sizeof(time_t) - 18*sizeof(unsigned int)];
     };

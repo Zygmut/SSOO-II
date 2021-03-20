@@ -19,7 +19,10 @@ int main(int argc, char **argsv){
         
         initSB(atoi(argsv[2]), atoi(argsv[2])/4);
         initMB();
-        initAI();    
+        initAI(); 
+
+        // Reservar inodo raiz con permisos maximos   
+        reservar_inodo ('d', 7);
         
         if(bumount() == -1){
             fprintf(stderr, "Error while unmounting\n");

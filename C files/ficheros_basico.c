@@ -1,8 +1,5 @@
 #include "ficheros_basico.h"
 
-#define posSB 0
-#define tamSB 1
-
 superbloque_t SB;
 
 /*
@@ -173,7 +170,7 @@ int escribir_bit(unsigned int nbloque, unsigned int bit){
  * Using:   bread
  */
 char leer_bit(unsigned int nbloque){
-    int posbyte = nbloque / 8;
+    int posbyte = nbloque / 8; 
     int posbit = nbloque % 8;
     int nbloqueMB = posbyte / BLOCKSIZE;
     int nbloqueabs =  SB.posPrimerBloqueMB + nbloqueMB;
@@ -190,10 +187,15 @@ char leer_bit(unsigned int nbloque){
     mascara &= bufferMB[posbyte]; // Operador and para bits
     mascara >>= (7 - posbit);   // Desplazamiento de bits a la derecha
     
+    // Print debug
+    printf("[leer_bit(%d) -> posbyte: %d, posbit: %d, nbloqueMB: %d, nbloqueabs: %d]\n", nbloque, posbyte, posbit, nbloqueMB, nbloqueabs);
+
     if(mascara == 0){
-        return 0;
+        printf("leer_bit(%d) = 0\n", nbloque);
+        return '0';
     }else{
-        return 1;
+        printf("leer_bit(%d) = 1\n", nbloque);
+        return '1';
     }
 }
 
@@ -205,8 +207,13 @@ char leer_bit(unsigned int nbloque){
  * Using:   memset, bread, escribir_bit, bwrite,  
  */
 int reservar_bloque(){ 
-    if(SB.cantInodosLibres == 0){ 
-        fprintf(stderr, "Error: Inodos has reached maximum capacity\n");  
+    if(bread(0, &SB) == -1){
+        fprintf(stderr, "Error while reading\n");
+        return -1;
+    }
+
+    if(SB.cantBloquesLibres == 0){ 
+        fprintf(stderr, "Error: Bloques has reached maximum capacity\n");  
         return -1; 
     }
 
@@ -256,7 +263,8 @@ int reservar_bloque(){
         return -1;
     }
 
-    SB.cantInodosLibres--;
+    SB.cantBloquesLibres--;  // Actualizamos la cantidad de bloques libres 
+
     if(memset(auxBufferMB, 0, BLOCKSIZE) == NULL){
         fprintf(stderr, "Error while setting memory\n");
         return -1;
@@ -265,7 +273,12 @@ int reservar_bloque(){
     if(bwrite(nbloque, auxBufferMB) == -1){ // Not really sure about this one (penultimo circulo de la funcion 3), grabamos buffer de 0s
         fprintf(stderr, "Error while writting\n");
         return -1;
-    }     
+    }   
+
+    if(bwrite(posSB, &SB) == -1){
+        fprintf(stderr, "Error while writting\n");
+        return -1;
+    }
     
     return nbloque;
 }
@@ -290,6 +303,12 @@ int liberar_bloque(unsigned int nbloque){
     }
 
     SB.cantBloquesLibres++;
+
+    if(bwrite(posSB, &SB) == -1){
+        fprintf(stderr, "Error while writting\n");
+        return -1;
+    }
+
     return nbloque;
 }
 
@@ -321,7 +340,7 @@ int escribir_inodo(unsigned int ninodo, inodo_t inodo){
         fprintf(stderr, "Error while writting\n");
         return -1;
     }
-    
+
     return 0;
 }
 
@@ -334,7 +353,7 @@ int escribir_inodo(unsigned int ninodo, inodo_t inodo){
  * Using:   none 
  */ 
 int leer_inodo(unsigned int ninodo, inodo_t *inodo){
-    if(bread(0, &SB) == -1){
+    if(bread(posSB, &SB) == -1){
         fprintf(stderr, "Error while reading SB\n");
         return -1;
     }
@@ -348,7 +367,7 @@ int leer_inodo(unsigned int ninodo, inodo_t *inodo){
         return -1;
     }
 
-    inodo = &inodos[posInodo]; //
+    *inodo = inodos[posInodo]; //
 
     return 0;
 }
@@ -363,36 +382,46 @@ int leer_inodo(unsigned int ninodo, inodo_t *inodo){
  */ 
 int reservar_inodo(unsigned char tipo, unsigned char permisos){
 
+    if(SB.cantInodosLibres == 0){ 
+        fprintf(stderr, "Error: Inodos has reached maximum capacity\n");  
+        return -1; 
+    }
+    
     // Encontrar el primer inodo libre
+    int posInodoReservado; // Variable auxiliar para guardar la posicion
+    inodo_t inodoReservado; // Variable para inicializar el inodo
 
-    int posInodoReservado; //variable auxiliar para guardar la posicion
-    inodo_t inodoReservado; //variable para inicializar el inodo
-
-    if(bread(0, &SB) == -1){
+    if(bread(posSB, &SB) == -1){  // Leer el SuperBloque para tener los valores actuales 
         fprintf(stderr, "Error while reading SB\n");
         return -1;
     }
 
     posInodoReservado = SB.posPrimerInodoLibre;
-
-    // Inicializa un inodo
+    SB.posPrimerInodoLibre++;  // Actualizamos la posicion del primer inodo libre
 
     inodoReservado.tipo = tipo;
     inodoReservado.permisos = permisos;
     inodoReservado.nlinks = 1;
     inodoReservado.tamEnBytesLog = 0;
-    inodoReservado.atime = time(NULL);
-    inodoReservado.ctime = time (NULL);
-    inodoReservado.mtime = time (NULL);
-    inodoReservado.numBloquesOcupados = 0;
-    inodoReservado.punterosDirectos = 0;
-    inodoReservado.punterosInderectos = 0;
+
+    inodoReservado.atime = time(NULL);  // Esto da warning
+    inodoReservado.ctime = time(NULL);
+    inodoReservado.mtime = time(NULL);
+
+    inodoReservado.numBloquesOcupados = 0;  
+    memset(inodoReservado.punterosDirectos, 0, sizeof(unsigned int) * 12);   // Llenamos de 0's todo el array 
+    memset(inodoReservado.punterosIndirectos, 0, sizeof(unsigned int) * 3);
     
     // Reserva el inodo inicializado
     escribir_inodo(posInodoReservado, inodoReservado);
 
-    //actualiza la lista de nodos libres
-    SB.cantInodosLibres = SB.cantInodosLibres - 1;
+    // Actualiza la lista de nodos libres
+    SB.cantInodosLibres--;  // Disminuimos la cantidad de inodos que tenemos 
+
+    if(bwrite(posSB, &SB) == -1){
+        fprintf(stderr, "Error while writting\n");
+        return -1;
+    }
 
     // Devolver la posición del inodo reservado
     return posInodoReservado;
