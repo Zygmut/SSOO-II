@@ -362,7 +362,9 @@ int leer_inodo(unsigned int ninodo, inodo_t *inodo){
  * Using:   none 
  */ 
 int reservar_inodo(unsigned char tipo, unsigned char permisos){
+
     // Encontrar el primer inodo libre
+
     int posInodoReservado; //variable auxiliar para guardar la posicion
     inodo_t inodoReservado; //variable para inicializar el inodo
 
@@ -373,7 +375,8 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
 
     posInodoReservado = SB.posPrimerInodoLibre;
 
-    // Reserva dicho inodo 
+    // Inicializa un inodo
+
     inodoReservado.tipo = tipo;
     inodoReservado.permisos = permisos;
     inodoReservado.nlinks = 1;
@@ -384,14 +387,13 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
     inodoReservado.numBloquesOcupados = 0;
     inodoReservado.punterosDirectos = 0;
     inodoReservado.punterosInderectos = 0;
-
+    
+    // Reserva el inodo inicializado
     escribir_inodo(posInodoReservado, inodoReservado);
 
+    //actualiza la lista de nodos libres
     SB.cantInodosLibres = SB.cantInodosLibres - 1;
 
+    // Devolver la posición del inodo reservado
     return posInodoReservado;
-
-    // Actualizar la lista enlazada
-
-    // Devolver el numero del inodo
 }
