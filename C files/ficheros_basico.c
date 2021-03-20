@@ -363,8 +363,33 @@ int leer_inodo(unsigned int ninodo, inodo_t *inodo){
  */ 
 int reservar_inodo(unsigned char tipo, unsigned char permisos){
     // Encontrar el primer inodo libre
+    int posInodoReservado; //variable auxiliar para guardar la posicion
+    inodo_t inodoReservado; //variable para inicializar el inodo
+
+    if(bread(0, &SB) == -1){
+        fprintf(stderr, "Error while reading SB\n");
+        return -1;
+    }
+
+    posInodoReservado = SB.posPrimerInodoLibre;
 
     // Reserva dicho inodo 
+    inodoReservado.tipo = tipo;
+    inodoReservado.permisos = permisos;
+    inodoReservado.nlinks = 1;
+    inodoReservado.tamEnBytesLog = 0;
+    inodoReservado.atime = time(NULL);
+    inodoReservado.ctime = time (NULL);
+    inodoReservado.mtime = time (NULL);
+    inodoReservado.numBloquesOcupados = 0;
+    inodoReservado.punterosDirectos = 0;
+    inodoReservado.punterosInderectos = 0;
+
+    escribir_inodo(posInodoReservado, inodoReservado);
+
+    SB.cantInodosLibres = SB.cantInodosLibres - 1;
+
+    return posInodoReservado;
 
     // Actualizar la lista enlazada
 
