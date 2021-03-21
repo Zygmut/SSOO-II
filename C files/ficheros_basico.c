@@ -84,6 +84,12 @@ int initMB(){
             return -1;
         }
     }
+    for(int i = posSB; i <= SB.posUltimoBloqueMB; i++){
+        if(reservar_bloque() == -1){
+            fprintf(stderr, "Error while reserving a block\n")
+            return -1;
+        }
+    }
     return 0;
 }
 
