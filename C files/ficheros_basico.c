@@ -68,19 +68,27 @@ int initSB(unsigned int nbloques, unsigned int ninodos){
  * Using:   bwrite, memset
  */
 int initMB(){
-    unsigned char buffer[BLOCKSIZE];  
+    unsigned char buffer[BLOCKSIZE];
+    int posBlock = SB.posPrimerBloqueDatos;  
+    if (bread(posSB, &SB) == -1){
+        fprintf(stderr, "Erro while reading\n");
+        return -1;
+    }
+
     if(memset(buffer,'0',sizeof(buffer)) == NULL){
         fprintf(stderr, "Error while setting memory\n");
         return -1;
     }
 
-    for (int i = SB.posPrimerBloqueMB; i <= SB.posUltimoBloqueMB; i++){
-        
 
-        if(bwrite(i, buffer) == -1){
+    for (int i = 0; i <= SB.cantBloquesLibres; i++){
+        
+        if(bwrite(posBlock, buffer) == -1){
             fprintf(stderr, "Error while writting\n");
             return -1;
         }
+        posBlock++;
+
         if(memset(buffer,'0',sizeof(buffer)) == NULL){
             fprintf(stderr, "Error while setting memory\n");
             return -1;
@@ -243,7 +251,7 @@ int reservar_bloque(){
     }
 
      // parse a for
-    while(!foundNotOccupied){ // Localizamos bloque desocupado
+    while(foundNotOccupied == 0){ // Localizamos bloque desocupado
         if(bread(posBloqueMB, bufferMB) == -1){ // Leemos bloque
             fprintf(stderr, "Error while writting\n");
             return -1;
@@ -277,16 +285,16 @@ int reservar_bloque(){
 
     SB.cantBloquesLibres--;  // Actualizamos la cantidad de bloques libres 
 
-   /*  if(memset(auxBufferMB, 0, BLOCKSIZE) == NULL){
+    if(memset(auxBufferMB, 0, BLOCKSIZE) == NULL){
         fprintf(stderr, "Error while setting memory\n");
         return -1;
     }
 
-    if(cmp(nbloque, auxBufferMB) == -1){ // Not really sure about this one (penultimo circulo de la funcion 3), grabamos buffer de 0s
+    /* if(cmp(nbloque, auxBufferMB) == -1){ // Not really sure about this one (penultimo circulo de la funcion 3), grabamos buffer de 0s
         fprintf(stderr, "Error while writting\n");
         return -1;
-    }   
- */
+    } */   
+ 
     if(bwrite(posSB, &SB) == -1){
         fprintf(stderr, "Error while writting\n");
         return -1;
