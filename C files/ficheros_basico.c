@@ -56,7 +56,7 @@ int initSB(unsigned int nbloques, unsigned int ninodos){
 
     SB.totBloques = nbloques;
     SB.totInodos = ninodos; 
-    
+
     return bwrite(posSB, &SB);
 }
 
@@ -74,7 +74,9 @@ int initMB(){
         return -1;
     }
 
-    for (int i = SB.posPrimerBloqueMB; i < SB.posUltimoBloqueMB; i++){
+    for (int i = SB.posPrimerBloqueMB; i <= SB.posUltimoBloqueMB; i++){
+        
+
         if(bwrite(i, buffer) == -1){
             fprintf(stderr, "Error while writting\n");
             return -1;
@@ -84,9 +86,10 @@ int initMB(){
             return -1;
         }
     }
-    for(int i = posSB; i <= SB.posUltimoBloqueMB; i++){
+
+    for(int i = 0; i < SB.posPrimerBloqueDatos; i++){
         if(reservar_bloque() == -1){
-            fprintf(stderr, "Error while reserving a block\n")
+            fprintf(stderr,"Error while reserving a block\n");
             return -1;
         }
     }
@@ -121,11 +124,13 @@ int initAI(){
             }
         }
         
+        
+
         if(bwrite(i, inodos) == -1){
             fprintf(stderr, "Error while writting\n");
             return -1;
         }   
-        if(memset(inodos, '0', sizeof(inodo_t)) == NULL){
+        if(memset(inodos, '0', sizeof(inodo_t)*8) == NULL){
             fprintf(stderr, "Error while setting memory\n");
             return -1;
         }
@@ -178,7 +183,7 @@ int escribir_bit(unsigned int nbloque, unsigned int bit){
 char leer_bit(unsigned int nbloque){
     int posbyte = nbloque / 8; 
     int posbit = nbloque % 8;
-    int nbloqueMB = posbyte / BLOCKSIZE;
+    int nbloqueMB = posbyte / BLOCKSIZE ;
     int nbloqueabs =  SB.posPrimerBloqueMB + nbloqueMB;
     
     unsigned char bufferMB[BLOCKSIZE]; 
@@ -194,14 +199,14 @@ char leer_bit(unsigned int nbloque){
     mascara >>= (7 - posbit);   // Desplazamiento de bits a la derecha
     
     // Print debug
-    printf("[leer_bit(%d) -> posbyte: %d, posbit: %d, nbloqueMB: %d, nbloqueabs: %d]\n", nbloque, posbyte, posbit, nbloqueMB, nbloqueabs);
+    printf("[leer_bit(%d) -> posbyte: %d, posbit: %d, nbloqueMB: %d, nbloqueabs: %d]\n", nbloque/BLOCKSIZE, posbyte, posbit, nbloqueMB, nbloqueabs);
 
     if(mascara == 0){
-        printf("leer_bit(%d) = 0\n", nbloque);
-        return '0';
+        printf("leer_bit(%d) = 0\n", nbloque/BLOCKSIZE);
+        return 0;
     }else{
-        printf("leer_bit(%d) = 1\n", nbloque);
-        return '1';
+        printf("leer_bit(%d) = 1\n", nbloque/BLOCKSIZE);
+        return 1;
     }
 }
 
@@ -213,7 +218,7 @@ char leer_bit(unsigned int nbloque){
  * Using:   memset, bread, escribir_bit, bwrite,  
  */
 int reservar_bloque(){ 
-    if(bread(0, &SB) == -1){
+    if(bread(posSB, &SB) == -1){
         fprintf(stderr, "Error while reading\n");
         return -1;
     }
@@ -237,6 +242,7 @@ int reservar_bloque(){
         return -1;
     }
 
+     // parse a for
     while(!foundNotOccupied){ // Localizamos bloque desocupado
         if(bread(posBloqueMB, bufferMB) == -1){ // Leemos bloque
             fprintf(stderr, "Error while writting\n");
@@ -271,16 +277,16 @@ int reservar_bloque(){
 
     SB.cantBloquesLibres--;  // Actualizamos la cantidad de bloques libres 
 
-    if(memset(auxBufferMB, 0, BLOCKSIZE) == NULL){
+   /*  if(memset(auxBufferMB, 0, BLOCKSIZE) == NULL){
         fprintf(stderr, "Error while setting memory\n");
         return -1;
     }
 
-    if(bwrite(nbloque, auxBufferMB) == -1){ // Not really sure about this one (penultimo circulo de la funcion 3), grabamos buffer de 0s
+    if(cmp(nbloque, auxBufferMB) == -1){ // Not really sure about this one (penultimo circulo de la funcion 3), grabamos buffer de 0s
         fprintf(stderr, "Error while writting\n");
         return -1;
     }   
-
+ */
     if(bwrite(posSB, &SB) == -1){
         fprintf(stderr, "Error while writting\n");
         return -1;
