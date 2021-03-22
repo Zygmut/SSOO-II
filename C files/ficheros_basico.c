@@ -285,15 +285,7 @@ int reservar_bloque(){
 
     SB.cantBloquesLibres--;  // Actualizamos la cantidad de bloques libres 
 
-    if(memset(auxBufferMB, 0, BLOCKSIZE) == NULL){
-        fprintf(stderr, "Error while setting memory\n");
-        return -1;
-    }
-
-    /* if(cmp(nbloque, auxBufferMB) == -1){ // Not really sure about this one (penultimo circulo de la funcion 3), grabamos buffer de 0s
-        fprintf(stderr, "Error while writting\n");
-        return -1;
-    } */   
+  
  
     if(bwrite(posSB, &SB) == -1){
         fprintf(stderr, "Error while writting\n");
