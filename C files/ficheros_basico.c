@@ -81,7 +81,7 @@ int initMB(){
     }
 
 
-    for (int i = 0; i <= SB.cantBloquesLibres; i++){
+    for (int i = 0; i < SB.cantBloquesLibres; i++){
         
         if(bwrite(posBlock, buffer) == -1){
             fprintf(stderr, "Error while writting\n");
@@ -284,8 +284,6 @@ int reservar_bloque(){
     }
 
     SB.cantBloquesLibres--;  // Actualizamos la cantidad de bloques libres 
-
-  
  
     if(bwrite(posSB, &SB) == -1){
         fprintf(stderr, "Error while writting\n");
