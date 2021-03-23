@@ -436,3 +436,85 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
     // Devolver la posición del inodo reservado
     return posInodoReservado;
 }
+
+/*
+ * Obtener elrango de punteros en el que se sitúa el bloque lógico 
+ * que buscamos (0:D, 1:I0, 2:I1, 3:I2), y obtenemos además la 
+ * dirección almacenada en el puntero correspondiente del inodo
+ * 
+ * Input:   *inodo      => ----
+ *          nblogico    => ----
+ *          *ptr        => ----
+ * Output:  Dirección almacenada en el puntero correspondiente del inodo
+ * Using:   none 
+ */ 
+int obtener_nRangoBL(inodo_t *inodo, unsigned int nblogico, unsigned int *ptr){
+    if(nblogico < DIRECTOS){
+        *ptr = inodo->punterosDirectos[nblogico];
+        return DIRECTOS;
+    }else if(nblogico < INDIRECTOS0){
+        *ptr = inodo->punterosIndirectos[0];
+        return INDIRECTOS0;
+    }else if(nblogico < INDIRECTOS1){
+        *ptr = inodo->punterosIndirectos[1];
+        return INDIRECTOS1;
+    }else if (nblogico < INDIRECTOS2{
+        *ptr = inodo->punterosIndirectos[2];
+        return INDIRECTOS2;
+    }else{
+        *ptr = 0;
+        fprintf(stderr, "Bloque lógico fuera de rango");
+        return -1;
+    }
+    //return 0;
+}
+
+/*
+ * Obtener los índices de los bloques de punteros
+ * 
+ * Input:   nblogico        => ----
+ *          nivel_punteros  => ----
+ * Output:  Indice del bloque pasado por parametro 
+ * Using:   none 
+ */ 
+int obtener_indice(int nblogico, int nivel_punteros){
+    if(nblogico < DIRECTOS){
+        return nblogico;
+    }else if(nblogico < INDIRECTOS0){
+        return nblogico - DIRECTOS;
+    }else if(nblogico < INDIRECTOS1){
+        if(nivel_punteros = 2){
+            return (nblogico - INDIRECTOS0)/NPUNTEROS;
+        }else if(nivel_punteros = 1){
+            return (nblogico - INDIRECTOS0)%NPUNTEROS;
+        }
+    }else if(nblogico < INDIRECTOS2){
+        if(nivel_punteros = 3){
+            return (nblogico - INDIRECTOS1)/(NPUNTEROS*NPUNTEROS);
+        }else if(nivel_punteros = 2){
+            return ((nblogico - INDIRECTOS1)%(NPUNTEROS*NPUNTEROS))/NPUNTEROS;
+        }else if(nivel_punteros = 1){
+            return ((nblogico - INDIRECTOS1)%(NPUNTEROS*NPUNTEROS))%NPUNTEROS;
+        }
+    }
+
+    fprintf(stderr, "Error while obtaining index\n");
+    return -1; 
+}
+
+
+/*
+ * Esta función se encarga de obtener el nº de bloque físico correspondiente a un 
+ * bloque lógico determinado del inodo indicado.
+ * 
+ * Input:   ninodo    => ----
+ *          nblogico  => ----
+ *          reservar  => ----
+ * Output:  ----
+ * Using:   none 
+ */ 
+int *traducir_bloque_inodo(int ninodo, int nblogico, char reservar){
+
+    return NULL;
+}
+
