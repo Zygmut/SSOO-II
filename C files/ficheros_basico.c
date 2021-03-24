@@ -458,7 +458,7 @@ int obtener_nRangoBL(inodo_t *inodo, unsigned int nblogico, unsigned int *ptr){
     }else if(nblogico < INDIRECTOS1){
         *ptr = inodo->punterosIndirectos[1];
         return INDIRECTOS1;
-    }else if (nblogico < INDIRECTOS2{
+    }else if (nblogico < INDIRECTOS2){
         *ptr = inodo->punterosIndirectos[2];
         return INDIRECTOS2;
     }else{
@@ -466,7 +466,7 @@ int obtener_nRangoBL(inodo_t *inodo, unsigned int nblogico, unsigned int *ptr){
         fprintf(stderr, "Bloque lógico fuera de rango");
         return -1;
     }
-    //return 0;
+   // return 0;
 }
 
 /*
@@ -514,7 +514,67 @@ int obtener_indice(int nblogico, int nivel_punteros){
  * Using:   none 
  */ 
 int *traducir_bloque_inodo(int ninodo, int nblogico, char reservar){
+    inodo_t inodo;
+    int ptr, ptr_ant, salvar_inodo, nRangoBL, nivel_punteros, indice;
+    int buffer[NPUNTEROS];
 
-    return NULL;
+    bread(ninodo,&inodo);
+
+    ptr=0, ptr_ant=0, salvar_inodo=0;
+    nRangoBL = obtener_nRangoBL(&inodo,nblogico,&ptr);
+    nivel_punteros = nRangoBL;
+
+    while(nivel_punteros>0){
+        if(ptr == 0){
+            if(reservar == 0){
+                return -1;
+            }
+            else{
+                salvar_inodo = 1;
+                ptr = reservar_bloque();
+                inodo.numBloquesOcupados++;
+                inodo.ctime = time(NULL);
+
+                if(nivel_punteros == nRangoBL){
+                    inodo.punterosIndirectos[nRangoBL-1] = ptr; //IMPRIMIR PARA TEST
+                }
+                else{
+                    buffer[indice] = ptr; //IMPRIMIR PARA TEST
+                    bwrite(ptr_ant,buffer);
+                }
+            }
+        }
+        bread(ptr,buffer);
+        indice = obtener_indice(nblogico, nivel_punteros);
+        ptr_ant = ptr;
+        ptr = buffer[indice];
+        nivel_punteros--;
+    }
+
+    if(ptr == 0){
+        if(reservar == 0){
+            return -1;
+        }
+        else{
+            salvar_inodo = 1;
+            ptr = reservar_bloque();
+            inodo.numBloquesOcupados++;
+            inodo.ctime = time(NULL);
+
+            if( nRangoBL == 0){
+                inodo.punterosDirectos[nblogico] = ptr; //IMPRIMIR TEST
+            }
+            else{
+                buffer[indice] = ptr; //IMPRIMIR TEST
+                bwrite(ptr_ant,buffer);
+            }
+        }
+    }
+
+    if(salvar_inodo == 1){
+        escribir_inodo(ninodo,inodo);
+    }
+
+    return ptr;
 }
 
