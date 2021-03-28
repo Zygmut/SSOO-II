@@ -25,40 +25,35 @@ int main(int argc, char **argsv){
         
         printSB();
         // printInodoList();       
-        printMB();
+        // printMB();
+        // block_test();
+        // printInodo(SB.posInodoRaiz);
 
-        // Reservar y liberar un bloque
-        printf("RESERVA Y LIBERACION DE UN BLOQUE\n");
-        int res = reservar_bloque();
-       
-        
-        printf("nBloque reservado : %d\n", res);
-        if(bread(posSB, &SB) == -1){
+        // Test traducir_bloque_inodo()
+
+        int pos_inodo_art = reservar_inodo('f', 6); // Reservamos inodo "artificial"
+        if(bread(posSB, &SB) == -1){  // Leer el SuperBloque para tener los valores actuales 
             fprintf(stderr, "Error while reading SB\n");
-        return -1;
-        }
-        printf("Cantidad de bloques libres: %d\n", SB.cantBloquesLibres);
-
-        printf("liberar el bloque [ %d ]: %d \n", res, liberar_bloque(res));
-        
-        if(bread(posSB, &SB) == -1){
-            fprintf(stderr, "Error while reading SB\n");
-        return -1;
-        }
-        printf("Cantidad de bloques libres: %d\n", SB.cantBloquesLibres);
-        printf("\n");
-
-        // Printeo de inodo raiz
-        printf("DATOS DEL INODO RAIZ\n");
-        printInodo(SB.posInodoRaiz); //por el culo te la hinco
-
-
-        printf("\n");
-        if(bumount() == -1){
-            fprintf(stderr, "Error while unmounting\n");
             return -1;
         }
         
+
+        printf("INODO 1. TRADUCCION DE LOS BLOQUES LOGICOS 8, 204, 30.004, 400.004 & 468.750\n");
+
+        traducir_bloque_inodo(pos_inodo_art, 8 , '1'); 
+        traducir_bloque_inodo(pos_inodo_art, 204 , '1');
+        traducir_bloque_inodo(pos_inodo_art, 30004 , '1');
+        traducir_bloque_inodo(pos_inodo_art, 400004 , '1');
+        traducir_bloque_inodo(pos_inodo_art, 468750 , '1');
+        printf("\n");
+        printInodo(pos_inodo_art);
+        
+        printf("\n");
+
+        if(bumount() == -1){
+        fprintf(stderr, "Error while unmounting\n");
+        return -1;
+    }
     }else{
         fprintf(stderr, "Not enough arguments\n");
     }
@@ -122,11 +117,12 @@ int printInodoList(){
     return 0;
 }
 
-int printMB(){ // solo imprime el priemr y ultimo bit de cada bloque
+int printMB(){ // solo imprime el primer y ultimo bit de cada bloque 
+    // Si se quiere ver este debug, es necesario descomentar las lineas de debug de leer_bit
 
     printf("VALORES DEL MB\n");
     for(int i = SB.posPrimerBloqueMB; i <= SB.posUltimoBloqueMB; i++){  
-        leer_bit(i*BLOCKSIZE);  // Leer el primer bit 1024/8 -> 128  1024%8 -> 0
+        leer_bit(i*BLOCKSIZE);  
         printf("\n");
         leer_bit((i*BLOCKSIZE)+ BLOCKSIZE-1);
         printf("\n");
@@ -136,9 +132,9 @@ int printMB(){ // solo imprime el priemr y ultimo bit de cada bloque
     return 0;
 }
 
-int printInodo(unsigned int ninodo ){
+int printInodo(unsigned int ninodo){
     inodo_t inodo;
-    
+    printf("DATOS DEL INODO RESERVADO %d\n", ninodo);
     leer_inodo(ninodo, &inodo);     // Mirar este & si peta
     
     ts = localtime(&inodo.atime);   // TOOO BAAAD!
@@ -148,7 +144,6 @@ int printInodo(unsigned int ninodo ){
     ts = localtime(&inodo.ctime);
     strftime(Ctime, sizeof(Ctime),"%a %Y-%m-%d %H:%M:%S", ts);
     
-    printf("id: %d\n", ninodo);
     printf("tipo: %c\n", inodo.tipo);
     printf("permisos: %i\n", inodo.permisos);
     printf("atime: %s\n", atime);
@@ -157,5 +152,34 @@ int printInodo(unsigned int ninodo ){
     printf("nlinks: %u\n", inodo.nlinks);
     printf("tamEnBytesLog: %u\n", inodo.tamEnBytesLog);
     printf("numBloquesOcupados: %u\n", inodo.numBloquesOcupados);
+    printf("contenido punterosDirectos: ");
+    for(int i = 0; i < 11; i++){
+        printf("%d | ", inodos->punterosDirectos[i]);
+    }
+    printf("%d", inodos->punterosDirectos[12]);
+    printf("\n");
+    return 0;
+}
+
+int block_test(){
+    printf("RESERVA Y LIBERACION DE UN BLOQUE\n");
+    int res = reservar_bloque();
+    
+    printf("nBloque reservado : %d\n", res);
+    if(bread(posSB, &SB) == -1){
+        fprintf(stderr, "Error while reading SB\n");
+        return -1;
+    }
+
+    printf("Cantidad de bloques libres: %d\n", SB.cantBloquesLibres);
+    printf("liberar el bloque [ %d ]: %d \n", res, liberar_bloque(res));
+    
+    if(bread(posSB, &SB) == -1){
+        fprintf(stderr, "Error while reading SB\n");
+        return -1;
+    }
+
+    printf("Cantidad de bloques libres: %d\n", SB.cantBloquesLibres);
+    printf("\n");
     return 0;
 }
