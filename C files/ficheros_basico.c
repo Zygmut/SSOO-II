@@ -81,7 +81,7 @@ int initMB(){
     for (int i = 0; i < setBlock; i++){
         
         if(bwrite(posBlock, buffer) == -1){
-            fprintf(stderr, "Error while writting\n");
+            fprintf(stderr, "Error while writing\n");
             return -1;
         }
         posBlock++;
@@ -132,7 +132,7 @@ int initAI(){
         
 
         if(bwrite(i, inodos) == -1){
-            fprintf(stderr, "Error while writting\n");
+            fprintf(stderr, "Error while writing\n");
             return -1;
         }   
         if(memset(inodos, '0', sizeof(inodo_t)*8) == NULL){
@@ -172,7 +172,7 @@ int escribir_bit(unsigned int nbloque, unsigned int bit){
     }
     
     if(bwrite(nbloqueabs, bufferMB) == -1){ // Escribimos bloque
-        fprintf(stderr, "Error while writting\n");
+        fprintf(stderr, "Error while writing\n");
         return -1;
     }
     return 0;
@@ -250,7 +250,7 @@ int reservar_bloque(){
      // parse a for
     while(foundNotOccupied == 0){ // Localizamos bloque desocupado
         if(bread(posBloqueMB, bufferMB) == -1){ // Leemos bloque
-            fprintf(stderr, "Error while writting\n");
+            fprintf(stderr, "Error while writing\n");
             return -1;
         }
 
@@ -276,14 +276,14 @@ int reservar_bloque(){
 
     nbloque = ((posBloqueMB - SB.posPrimerBloqueMB)*BLOCKSIZE + posbyte)*8 + posbit;
     if(escribir_bit(nbloque, 1) == -1){ 
-        fprintf(stderr, "Error while writting a bit\n");
+        fprintf(stderr, "Error while writing a bit\n");
         return -1;
     }
 
     SB.cantBloquesLibres--;  // Actualizamos la cantidad de bloques libres 
  
     if(bwrite(posSB, &SB) == -1){
-        fprintf(stderr, "Error while writting\n");
+        fprintf(stderr, "Error while writing\n");
         return -1;
     }
     
@@ -300,7 +300,7 @@ int reservar_bloque(){
 int liberar_bloque(unsigned int nbloque){
 
     if(escribir_bit(nbloque, 0) == -1){
-        fprintf(stderr, "Error while writting a bit\n");
+        fprintf(stderr, "Error while writing a bit\n");
         return -1;
     }
 
@@ -312,7 +312,7 @@ int liberar_bloque(unsigned int nbloque){
     SB.cantBloquesLibres++;
 
     if(bwrite(posSB, &SB) == -1){
-        fprintf(stderr, "Error while writting\n");
+        fprintf(stderr, "Error while writing\n");
         return -1;
     }
 
@@ -340,7 +340,7 @@ int escribir_inodo(unsigned int ninodo, inodo_t inodo){
 
     inodos[posInodo] = inodo;
     if(bwrite(SB.posPrimerBloqueAI + posBloque, inodos) == -1){
-        fprintf(stderr, "Error while writting\n");
+        fprintf(stderr, "Error while writing\n");
         return -1;
     }
     return 0;
@@ -419,7 +419,7 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
     // Actualiza la lista de nodos libres
     SB.cantInodosLibres--;  // Disminuimos la cantidad de inodos que tenemos 
     if(bwrite(posSB, &SB) == -1){
-        fprintf(stderr, "Error while writting\n");
+        fprintf(stderr, "Error while writing\n");
         return -1;
     }
 
@@ -442,7 +442,6 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
 int obtener_nRangoBL(inodo_t *inodo, unsigned int nblogico, unsigned int *ptr){
     if(nblogico < DIRECTOS){
         ptr = &inodo->punterosDirectos[nblogico];
-        printf("que vale inodos->punterosDirectos en el metodo nRangoBL %d\n", inodo->punterosDirectos[nblogico]);
         return 0;
 
     }else if(nblogico < INDIRECTOS0){
@@ -519,10 +518,7 @@ int traducir_bloque_inodo(int ninodo, int nblogico, char reservar){
 
     while(nivel_punteros>0){
         if(ptr == 0){
-            if(reservar == 0){ // Estamos en el nivel esperado
-                fprintf(stderr, "Error: nonexistant block reading\n");
-                return -1;
-            }else{
+            if(reservar != 0){ // Estamos en el nivel esperado
                 salvar_inodo = 1;
                 ptr = reservar_bloque(); 
                 inodo.numBloquesOcupados++;
@@ -535,7 +531,7 @@ int traducir_bloque_inodo(int ninodo, int nblogico, char reservar){
                     buffer[indice] = ptr; 
                     printf("[traducir_bloque_inodo()→ inodo.punteros_nivel%i[%i] = %i (reservado BF %i para punteros_nivel%i)]\n", nivel_punteros, indice, ptr, ptr, nivel_punteros);
                     if(bwrite(ptr_ant, buffer) == -1){
-                        fprintf(stderr, "Error while writting\n");
+                        fprintf(stderr, "Error while writing\n");
                         return -1;
                     }
                 }
@@ -552,24 +548,20 @@ int traducir_bloque_inodo(int ninodo, int nblogico, char reservar){
         nivel_punteros--;
     }
     if(ptr == 0){  // Punteros directos 
-        if(reservar == 0){
-            fprintf(stderr, "Error: nonexistant block reading\n");
-            return -1;
-        }
-        else{
+        if(reservar != 0){
             salvar_inodo = 1;
             ptr = reservar_bloque();
             inodo.numBloquesOcupados++;
             inodo.ctime = time(NULL);
             if(nRangoBL == 0){
-                  printf("[traducir_bloque_inodo()→ inodo.punterosDirectos[%i] = %i (reservado BF %i para BL %i)]\n", nblogico, ptr, ptr, nblogico);
+                printf("[traducir_bloque_inodo()→ inodo.punterosDirectos[%i] = %i (reservado BF %i para BL %i)]\n", nblogico, ptr, ptr, nblogico);
                 inodo.punterosDirectos[nblogico] = ptr; //IMPRIMIR TEST
                 
             }else{ // print nRangoBL
                 buffer[indice] = ptr; //IMPRIMIR TEST
-                 printf("[traducir_bloque_inodo()→ inodo.punteros_nivel1[%i] = %i (reservado BF %i para BL %i)]\n", indice, ptr, ptr, nblogico);
+                printf("[traducir_bloque_inodo()→ inodo.punteros_nivel1[%i] = %i (reservado BF %i para BL %i)]\n", indice, ptr, ptr, nblogico);
                 if(bwrite(ptr_ant, buffer) == -1){
-                    fprintf(stderr, "Error while writting\n");
+                    fprintf(stderr, "Error while writing\n");
                     return -1;
                 }
             }

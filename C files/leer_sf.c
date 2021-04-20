@@ -31,22 +31,22 @@ int main(int argc, char **argsv){
 
         // Test traducir_bloque_inodo()
 
-        int pos_inodo_art = reservar_inodo('f', 6); // Reservamos inodo "artificial"
+       
         if(bread(posSB, &SB) == -1){  // Leer el SuperBloque para tener los valores actuales 
             fprintf(stderr, "Error while reading SB\n");
             return -1;
         }
         
+        // int pos_inodo_art = reservar_inodo('f', 6); // Reservamos inodo "artificial"
+        // printf("INODO 1. TRADUCCION DE LOS BLOQUES LOGICOS 8, 204, 30.004, 400.004 & 468.750\n");
 
-        printf("INODO 1. TRADUCCION DE LOS BLOQUES LOGICOS 8, 204, 30.004, 400.004 & 468.750\n");
-
-        traducir_bloque_inodo(pos_inodo_art, 8 , '1'); 
-        traducir_bloque_inodo(pos_inodo_art, 204 , '1');
-        traducir_bloque_inodo(pos_inodo_art, 30004 , '1');
-        traducir_bloque_inodo(pos_inodo_art, 400004 , '1');
-        traducir_bloque_inodo(pos_inodo_art, 468750 , '1');
-        printf("\n");
-        printInodo(pos_inodo_art);
+        // traducir_bloque_inodo(pos_inodo_art, 8 , '1'); 
+        // traducir_bloque_inodo(pos_inodo_art, 204 , '1');
+        // traducir_bloque_inodo(pos_inodo_art, 30004 , '1');
+        // traducir_bloque_inodo(pos_inodo_art, 400004 , '1');
+        // traducir_bloque_inodo(pos_inodo_art, 468750 , '1');
+        // printf("\n");
+        // printInodo(pos_inodo_art);
         
         printf("\n");
 

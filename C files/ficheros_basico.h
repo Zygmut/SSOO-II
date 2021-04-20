@@ -26,7 +26,6 @@ typedef union superbloque{
         unsigned int cantInodosLibres;
         unsigned int totBloques;
         unsigned int totInodos;
-        //char padding[BLOCKSIZE-12*sizeof(unsigned int)];
     };
      char padding[BLOCKSIZE];
 }superbloque_t;
@@ -42,14 +41,13 @@ typedef union inodo{
         time_t mtime;                       // last modification of data        default time(NULL)
         time_t ctime;                       // last modification of an Inodo    default time(NULL)
 
-        unsigned int nlinks;                 // 1 default
-        unsigned int tamEnBytesLog;
-        unsigned int numBloquesOcupados;
+        unsigned int nlinks;                 // Cantidad de enlaces de entradas en directorio
+        unsigned int tamEnBytesLog;          // Tamaño en bytes lógicos
+        unsigned int numBloquesOcupados;     // Cantidad de bloques en la zona de datos que estan ocupados
 
         unsigned int punterosDirectos[12];
         unsigned int punterosIndirectos[3];
 
-        // char padding[INODOSIZE - 8*sizeof(unsigned char) - 3*sizeof(time_t) - 18*sizeof(unsigned int)];
     };
     char padding[INODOSIZE];
 }inodo_t;
