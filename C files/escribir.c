@@ -37,11 +37,10 @@ int main(int argc, char **argv){
         strcpy(buff, argv[2]);              // Copiamos el texto pasado por parametro al buffer
         for(int i = 0; i < 5; i++){         // Recorremos todos los offset 
 
-            printf("Se ha reservado el inodo[%d] con offset: %d", ninodo, offset[i]);
+            printf("Se ha reservado el inodo[%d] con offset: %d\n", ninodo, offset[i]);
             //  nBytes += mi_write_f(ninodo, buff, offset[i], length); // Guardamos la cantidad de bytes escritos
-            aux1 = mi_write_f(ninodo, buff, offset[i], length);
-            aux2 = mi_read_f(ninodo, buff, offset[i], length);
-            nBytes += aux1;
+            //aux2 = mi_read_f(ninodo, buff, offset[i], length);
+            nBytes += mi_write_f(ninodo, buff, offset[i], length);;
 
             // DEBUG
             printf("write : %d\t read: %d\n",aux1, aux2 );

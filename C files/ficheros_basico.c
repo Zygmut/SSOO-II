@@ -70,26 +70,17 @@ int initSB(unsigned int nbloques, unsigned int ninodos){
 int initMB(){
     void *buffer[BLOCKSIZE];
 
-    int posBlock = SB.posPrimerBloqueDatos;
-    int setBlock = SB.cantBloquesLibres;  
-
     if(memset(buffer, 0, sizeof(buffer)) == NULL){
         fprintf(stderr, "Error while setting memory\n");
         return -1;
     }
 
-    for (int i = 0; i < setBlock; i++){
-        
-        if(bwrite(posBlock, buffer) == -1){
+    for (int i = SB.posPrimerBloqueMB; i <= SB.posUltimoBloqueMB; i++){
+        if(bwrite(i, buffer) == -1){
             fprintf(stderr, "Error while writing\n");
             return -1;
         }
-        posBlock++;
 
-        if(memset(buffer, 0, sizeof(buffer)) == NULL){
-            fprintf(stderr, "Error while setting memory\n");
-            return -1;
-        }
     }
 
     for(int i = 0; i < SB.posPrimerBloqueDatos; i++){
@@ -512,7 +503,10 @@ int traducir_bloque_inodo(int ninodo, int nblogico, char reservar){
 
     leer_inodo(ninodo, &inodo);
 
-    ptr=0, ptr_ant=0, salvar_inodo=0;
+    ptr = 0;
+    ptr_ant = 0;
+    salvar_inodo = 0;
+
     nRangoBL = obtener_nRangoBL(&inodo, nblogico, &ptr);
     nivel_punteros = nRangoBL;
 
@@ -559,7 +553,7 @@ int traducir_bloque_inodo(int ninodo, int nblogico, char reservar){
                 
             }else{ // print nRangoBL
                 buffer[indice] = ptr; //IMPRIMIR TEST
-                printf("[traducir_bloque_inodo()→ inodo.punteros_nivel1[%i] = %i (reservado BF %i para BL %i)]\n", indice, ptr, ptr, nblogico);
+                printf("[traducir_bloque_inodo( )→ inodo.punteros_nivel1[%i] = %i (reservado BF %i para BL %i)]\n", indice, ptr, ptr, nblogico);
                 if(bwrite(ptr_ant, buffer) == -1){
                     fprintf(stderr, "Error while writing\n");
                     return -1;
