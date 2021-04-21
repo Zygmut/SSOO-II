@@ -13,8 +13,10 @@
 int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offset, unsigned int nbytes){
     inodo_t inodo;
     int bytes_escritos = 0;
+    printf("NUMERO DEL INODO QUE SE COMPRUEBAN DISPOSITIVOS %i",ninodo);
     leer_inodo(ninodo, &inodo);
-    if ((inodo.permisos & 2) == 2){
+    printf("PERMISOS %i \n", inodo.permisos);
+   if ((inodo.permisos & 2) == 2) {
         int primerBL = offset / BLOCKSIZE;
         int ultimoBL = (offset + nbytes - 1) / BLOCKSIZE;
         int desp1 = offset % BLOCKSIZE;
@@ -34,6 +36,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
                 fprintf(stderr, "Error while writing\n");
                 return -1;
             }
+            
         }
         //no cabe en un solo bloque
         else{
@@ -67,23 +70,27 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
                 fprintf(stderr, "Error while writing\n");
                 return -1;
             }
-
+            
         }
-        bytes_escritos += offset; // not really sure about this one thou
+        //bytes_escritos += offset; // not really sure about this one thou
         //actualizamos inodo
+        if(bytes_escritos != 0){
         leer_inodo(ninodo,&inodo);
-        if(inodo.tamEnBytesLog < bytes_escritos){
-            inodo.tamEnBytesLog = bytes_escritos;
+        printf("TAMENBYTESLOG %d \n",inodo.tamEnBytesLog);//SHOULD BE STAT?
+        if(inodo.tamEnBytesLog < (bytes_escritos+offset)){
+            inodo.tamEnBytesLog = bytes_escritos+offset;
             inodo.ctime = time(NULL);
         }
         inodo.mtime = time(NULL);
         escribir_inodo(ninodo, inodo);
-        return bytes_escritos;
-
+       
+        }
+         return bytes_escritos;
     }else{
         fprintf(stderr, "Inodo[%d] doesn't have writing privileges\n", ninodo);
         return -1;
     }
+   
 }
 
 /*
@@ -101,7 +108,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
     int bytes_leidos = 0;
     leer_inodo(ninodo, &inodo);
     
-    if((inodo.permisos & 4) == 4 ){ //Check permisos de lectura inodo leido
+    if((inodo.permisos & 4) != 4 ){ //Check permisos de lectura inodo leido
         if(offset >= inodo.tamEnBytesLog){
             return bytes_leidos; // return 0;
         }
@@ -124,22 +131,17 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
                     return -1;
                 }
 
-                if(desp2 == 0){ // Estamos leyendo el ultimo bloque 
-                    memcpy(buf_original, buf_bloque + desp1, BLOCKSIZE - desp1);
-                    bytes_leidos += BLOCKSIZE - desp1;
-                }else{
-                    memcpy(buf_original, buf_bloque + desp1, desp2 - desp1 + 1);
-                    bytes_leidos += desp2 - desp1 + 1;
-                }
-
-            }else{ //No hay bloque fisiso reservado, acumulamos bytes
+                memcpy(buf_original, buf_bloque + desp1, nbytes);
+                bytes_leidos += nbytes;
+            }
+            
+            else{ //No hay bloque fisiso reservado, acumulamos bytes
                 bytes_leidos += BLOCKSIZE ;
             }
         }else{
 
             // Primer bloque
-            desp2 = offset + nbytes - 1; //modificamos el desplazamiento
-            
+          
             if(nbfisico != -1){
                 if(bread(nbfisico, buf_bloque) == -1){
                     fprintf(stderr, "Error while reading \n");
@@ -164,14 +166,15 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
             }
 
             // Ultimo bloque
-            desp2 = desp2 % BLOCKSIZE;
             nbfisico = traducir_bloque_inodo(ninodo, ultimoBL, 0);
             if(nbfisico != -1){  
                 if(bread(nbfisico, buf_bloque) == -1){
                     fprintf(stderr, "Error while reading\n");
                     return -1;
                 }
+                //revisar aqui
                 memcpy (buf_original + (nbytes - desp2 - 1), buf_bloque, desp2 + 1);
+                //
                 bytes_leidos += desp2 + 1;
             }else{ // No esta el bloque reservado
                 bytes_leidos += BLOCKSIZE;

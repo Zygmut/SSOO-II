@@ -52,7 +52,7 @@ int main(int argc, char **argv){
         }
     }else if(diferentes_inodos == 1){ // Puede dar -1 al haber un error
         strcpy(buff, argv[2]);
-        for(int i = 0; i < 4; i++){
+        for(int i = 0; i < 5; i++){
             ninodo = reservar_inodo('f', 6);
             printf("Se ha reservado el inodo[%d] con offset: %d", ninodo, offset[i]);
             aux1 = mi_write_f(ninodo, buff, offset[i], length);
