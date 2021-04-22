@@ -432,17 +432,18 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
  */ 
 int obtener_nRangoBL(inodo_t *inodo, unsigned int nblogico, unsigned int *ptr){
     if(nblogico < DIRECTOS){
-        ptr = &inodo->punterosDirectos[nblogico];
+        *ptr = inodo->punterosDirectos[nblogico];
         return 0;
 
     }else if(nblogico < INDIRECTOS0){
-        ptr = &inodo->punterosIndirectos[0];
+        *ptr = inodo->punterosIndirectos[0];
         return 1;
     }else if(nblogico < INDIRECTOS1){
-        ptr = &inodo->punterosIndirectos[1];
+        *ptr = inodo->punterosIndirectos[1];
         return 2;
     }else if (nblogico < INDIRECTOS2){
-        ptr = &inodo->punterosIndirectos[2];
+        *ptr = inodo->punterosIndirectos[2];
+        
         return 3;
     }else{
         ptr = 0;
@@ -553,7 +554,7 @@ int traducir_bloque_inodo(int ninodo, int nblogico, char reservar){
                 
             }else{ // print nRangoBL
                 buffer[indice] = ptr; //IMPRIMIR TEST
-                printf("[traducir_bloque_inodo( )→ inodo.punteros_nivel1[%i] = %i (reservado BF %i para BL %i)]\n", indice, ptr, ptr, nblogico);
+                printf("[traducir_bloque_inodo()→ inodo.punteros_nivel1[%i] = %i (reservado BF %i para BL %i)]\n", indice, ptr, ptr, nblogico);
                 if(bwrite(ptr_ant, buffer) == -1){
                     fprintf(stderr, "Error while writing\n");
                     return -1;
@@ -562,7 +563,6 @@ int traducir_bloque_inodo(int ninodo, int nblogico, char reservar){
             
             
         }
-    }
 
     if (salvar_inodo == 1){
         escribir_inodo(ninodo, inodo);  
