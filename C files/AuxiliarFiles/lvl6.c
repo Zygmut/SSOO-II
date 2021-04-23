@@ -104,3 +104,36 @@ int liberar_bloques_inodo(unsigned int primerBL, inodo_t inodo){
     }
     return liberados;
 }
+
+
+/* Esto va dentro de ficheros.c */
+
+int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
+    inodo_t inodo;
+    int liberados = 0;
+    struct tm *ts;
+    char atime [80];
+    char mtime [80];
+    char Ctime [80];
+
+    if (leer_inodo(ninodo, &inodo) < 0){
+        return -1;
+    }
+    if (inodo.permisos == 6){ //tiene permisos para escribir
+        if (nbytes % BLOCKSIZE == 0){
+            liberados = liberar_bloques_inodo(nbytes/BLOCKSIZE, inodo);
+        } else {
+            liberados = liberar_bloques_inodo(nbytes/BLOCKSIZE + 1, inodo);
+        }
+
+        if(liberados > 0){
+            inodo.tamEnBytesLog = nbytes;
+            ts = localtime(&inodo.atime);   // TOOO BAAAD!
+            ts = localtime(&inodo.mtime);
+            ts = localtime(&inodo.ctime);
+            inodo.numBloquesOcupados = inodo.numBloquesOcupados - liberados;
+            escribir_inodo(ninodo, inodo);
+        }
+    }
+    return liberados;
+}
