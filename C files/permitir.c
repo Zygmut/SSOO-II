@@ -1,3 +1,4 @@
+// Jaume, Marc, Ruben
 #include "ficheros.h"
 
 int main(int argc,char **argv){

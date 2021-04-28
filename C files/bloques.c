@@ -1,3 +1,4 @@
+// Jaume, Marc, Ruben
 #include "bloques.h"
 
 static int descriptor = 0;

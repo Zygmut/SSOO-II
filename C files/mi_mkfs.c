@@ -1,3 +1,4 @@
+// Jaume, Marc, Ruben
 #include "ficheros_basico.h"
 
 int main(int argc, char **argsv){

@@ -1,3 +1,4 @@
+// Jaume, Marc, Ruben
 #include "bloques.h"
 #include <limits.h> // Valor muy grande para el enlace de Inodos
 #include <time.h>   // ctime, atime & mtime 
@@ -69,3 +70,6 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos);
 int obtener_nRangoBL(inodo_t *inodo, unsigned int nblogico, unsigned int *ptr);
 int obtener_indice(int nblogico, int nivel_punteros);
 int traducir_bloque_inodo(int ninodo, int nblogico, char reservar);
+
+int liberar_inodo(unsigned int ninodo);
+int liberar_bloques_inodo(unsigned int primerBL, inodo_t inodo);

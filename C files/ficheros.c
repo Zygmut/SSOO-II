@@ -1,3 +1,4 @@
+// Jaume, Marc, Ruben
 #include "ficheros.h"
 /*
  * Escribe el contenido procedente de un buffer de memoria, buf_original, de tamaño nbytes, en un fichero/directorio
@@ -114,7 +115,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
     inodo_t inodo;
     int bytes_leidos = 0;
     
-    //MOdificamos el atime
+    //Modificamos el atime
     leer_inodo(ninodo, &inodo);
     inodo.atime = time(NULL);
     escribir_inodo(ninodo, inodo);
@@ -239,4 +240,37 @@ int mi_stat_f(unsigned int ninodo, struct STAT *p_stat){
     p_stat->numBloquesOcupados = inodo.numBloquesOcupados;
 
     return 0;
+}
+
+int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
+    inodo_t inodo;
+    int liberados = 0;
+    //struct tm *ts;
+    inodo.atime=time(NULL);
+    inodo.mtime=time(NULL);
+    inodo.ctime=time(NULL);
+
+    if (leer_inodo(ninodo, &inodo) < 0){
+        return -1;
+    }
+    if (inodo.permisos == 6){ //tiene permisos para escribir
+        if (nbytes % BLOCKSIZE == 0){
+            liberados = liberar_bloques_inodo(nbytes/BLOCKSIZE, inodo);
+        } else {
+            liberados = liberar_bloques_inodo(nbytes/BLOCKSIZE + 1, inodo);
+        }
+
+        if(liberados > 0){
+            inodo.tamEnBytesLog = nbytes;
+            inodo.atime=time(NULL);
+            inodo.mtime=time(NULL);
+            inodo.ctime=time(NULL);
+            //ts = localtime(&inodo.atime);   // TOOO BAAAD!
+            //ts = localtime(&inodo.mtime);
+            //ts = localtime(&inodo.ctime);
+            inodo.numBloquesOcupados = inodo.numBloquesOcupados - liberados;
+            escribir_inodo(ninodo, inodo);
+        }
+    }
+    return liberados;
 }

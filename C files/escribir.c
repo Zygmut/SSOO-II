@@ -1,3 +1,4 @@
+// Jaume, Marc, Ruben
 #include "ficheros.h"
 
 int printSTAT(int ninodo);
