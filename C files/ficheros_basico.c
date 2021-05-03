@@ -245,7 +245,7 @@ int reservar_bloque(){
             fprintf(stderr, "targeted block not found, aborting\n");
             return -1;
         }
-        
+
         if(bread(posBloqueMB, bufferMB) == -1){ // Leemos bloque
             fprintf(stderr, "Error while writing\n");
             return -1;
@@ -536,6 +536,8 @@ int traducir_bloque_inodo(int ninodo, int nblogico, char reservar){
                         return -1;
                     }
                 }
+            }else{
+                return -1;
             }
         }
         
@@ -568,7 +570,10 @@ int traducir_bloque_inodo(int ninodo, int nblogico, char reservar){
             }
             
             
-        }}
+        } else {
+            return -1;
+        }
+    }
 
     if (salvar_inodo == 1){
         escribir_inodo(ninodo, inodo);  
