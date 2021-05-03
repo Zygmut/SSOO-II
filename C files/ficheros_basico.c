@@ -241,6 +241,11 @@ int reservar_bloque(){
 
      // parse a for
     while(foundNotOccupied == 0){ // Localizamos bloque desocupado
+        if(posBloqueMB > SB.posUltimoBloqueMB){ //esto deberia evitar leer memoria ilegal
+            fprintf(stderr, "targeted block not found, aborting\n");
+            return -1;
+        }
+        
         if(bread(posBloqueMB, bufferMB) == -1){ // Leemos bloque
             fprintf(stderr, "Error while writing\n");
             return -1;
