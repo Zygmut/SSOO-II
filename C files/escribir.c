@@ -13,7 +13,7 @@ int aux1, aux2 =0;
 
 int main(int argc, char **argv){
 
-    if(argv[1] == NULL || argv[2] == NULL || argv[2] == NULL || argv[3] == NULL){ // Checkear syntax 
+    if(argv[1] == NULL || argv[2] == NULL /*|| argv[2] == NULL*/ || argv[3] == NULL){ // Checkear syntax 
         fprintf(stderr,"Command syntax should be: escribir <nombre_dispositivo> <\"$(cat fichero)\"> <diferentes_diferentes_inodos>\n");
         return -1;
     }
@@ -42,9 +42,10 @@ int main(int argc, char **argv){
 
             printf("Se ha reservado el inodo[%d] con offset: %d\n", ninodo, offset[i]);
             //  nBytes += mi_write_f(ninodo, buff, offset[i], length); // Guardamos la cantidad de bytes escritos
-            //aux2 = mi_read_f(ninodo, buff, offset[i], length);
             aux1 = mi_write_f(ninodo, buff, offset[i], length);
+            aux2 = mi_read_f(ninodo, buff, offset[i], length); //No sabemos si esto es necesario, pero antes estaba comentado y no ha cambiado su comportamiento
             nBytes += aux1;
+            
 
             // DEBUG
             printf("write : %d\t read: %d\n",aux1, aux2 );
