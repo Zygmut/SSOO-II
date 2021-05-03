@@ -43,6 +43,11 @@ int main(int argc, char **argv){
             printf("Se ha reservado el inodo[%d] con offset: %d\n", ninodo, offset[i]);
             //  nBytes += mi_write_f(ninodo, buff, offset[i], length); // Guardamos la cantidad de bytes escritos
             aux1 = mi_write_f(ninodo, buff, offset[i], length);
+            if(memset(buff, 0, sizeof(buff)) == NULL){
+                fprintf(stderr, "Error");
+                return -1;
+            }
+
             aux2 = mi_read_f(ninodo, buff, offset[i], length); //No sabemos si esto es necesario, pero antes estaba comentado y no ha cambiado su comportamiento
             nBytes += aux1;
             
@@ -60,6 +65,10 @@ int main(int argc, char **argv){
             ninodo = reservar_inodo('f', 6);
             printf("Se ha reservado el inodo[%d] con offset: %d", ninodo, offset[i]);
             aux1 = mi_write_f(ninodo, buff, offset[i], length);
+            if(memset(buff, 0, sizeof(buff)) == NULL){
+                fprintf(stderr, "Error");
+                return -1;
+            }
             aux2 = mi_read_f(ninodo, buff, offset[i], length);
             nBytes += aux1;
 
