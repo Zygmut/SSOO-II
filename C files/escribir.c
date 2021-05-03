@@ -9,6 +9,8 @@ struct STAT p_stat;
 int offset[5] = {9000, 209000, 30725000, 409605000, 480000000};
 struct tm * info;
 int aux1, aux2 =0;
+
+
 int main(int argc, char **argv){
 
     if(argv[1] == NULL || argv[2] == NULL || argv[2] == NULL || argv[3] == NULL){ // Checkear syntax 
@@ -41,7 +43,8 @@ int main(int argc, char **argv){
             printf("Se ha reservado el inodo[%d] con offset: %d\n", ninodo, offset[i]);
             //  nBytes += mi_write_f(ninodo, buff, offset[i], length); // Guardamos la cantidad de bytes escritos
             //aux2 = mi_read_f(ninodo, buff, offset[i], length);
-            nBytes += mi_write_f(ninodo, buff, offset[i], length);;
+            aux1 = mi_write_f(ninodo, buff, offset[i], length);
+            nBytes += aux1;
 
             // DEBUG
             printf("write : %d\t read: %d\n",aux1, aux2 );

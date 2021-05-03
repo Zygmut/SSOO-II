@@ -35,6 +35,7 @@ int main(int argc, char **argv){
     bytes_leidos = mi_read_f(ninodo, buffer, offset, size);
 
     while(bytes_leidos  > 0){
+        printf("dentro sisisisisi");
         write(1, buffer, bytes_leidos); //Motrar resultados por pantalla
         total_bytes_leidos += bytes_leidos;
         offset += size;
