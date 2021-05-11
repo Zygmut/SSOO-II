@@ -584,15 +584,27 @@ int traducir_bloque_inodo(int ninodo, int nblogico, char reservar){
 int liberar_inodo(unsigned int ninodo){
     inodo_t inodo;
 
+    if(bread(posSB, &SB) == -1){  // Leer el SuperBloque para tener los valores actuales 
+        fprintf(stderr, "Error while reading SB\n");
+        return -1;
+    }
     leer_inodo(ninodo, &inodo);//leemos el inodo que se quiere liberar
     /* Liberamos el inodo en cuestión */
-    inodo.numBloquesOcupados = inodo.numBloquesOcupados - liberar_bloques_inodo(0, inodo);
+
+    inodo.numBloquesOcupados -= liberar_bloques_inodo(0, &inodo);
     inodo.tipo = 'l';
     inodo.tamEnBytesLog = 0;
-    SB.posPrimerInodoLibre--; //dejamos como libre el inodo correspondiente en el superbloque
+    inodo.punterosDirectos[0] = SB.posPrimerInodoLibre;
+    SB.posPrimerInodoLibre = ninodo; //dejamos como libre el inodo correspondiente en el superbloque
     SB.cantInodosLibres++;
+
     escribir_inodo(ninodo, inodo);
-    bwrite(0, &SB);
+
+    if(bwrite(posSB, &SB) == -1){
+        fprintf(stderr, "Error while writing\n");
+        return -1;
+    }
+
     return ninodo;
     /* Notas para tener en cuenta:
         - El superbloque se lee cuando se invoca "leer_inodo", asi que en principio no hace falta
@@ -604,75 +616,98 @@ int liberar_inodo(unsigned int ninodo){
     */
 }
 
-int liberar_bloques_inodo(unsigned int primerBL, inodo_t inodo){
-    unsigned char bufAux_punteros[BLOCKSIZE]; //1024 bytes
-    unsigned int bloque_punteros[NPUNTEROS]; //1024 bytes
-    unsigned int ultimoBL, ptr, nbl;
-    int nRangoBL, nivel_punteros, indice;
+int liberar_bloques_inodo(unsigned int primerBL, inodo_t *inodo){
+    unsigned int nivel_punteros, indice, ptr, nBL, ultimoBL;
+    int nRangoBL;
+    unsigned int bloques_punteros[3][NPUNTEROS];
+    unsigned char bufAux_punteros[BLOCKSIZE];
     int ptr_nivel[3];
     int indices[3];
-    unsigned int bloques_punteros[3][NPUNTEROS];
     int liberados;
 
-    if (inodo.tamEnBytesLog == 0){ //el inodo esta vacio
+    liberados = 0;
+    if(inodo -> tamEnBytesLog == 0){
+        fprintf(stderr, "File is empty\n");
         return 0;
     }
 
-    if (inodo.tamEnBytesLog % BLOCKSIZE == 0){ //encontramos el ultimo bloque logico
-        ultimoBL = inodo.tamEnBytesLog/BLOCKSIZE - 1;
-    } else {
-        ultimoBL = inodo.tamEnBytesLog/BLOCKSIZE;
+    if(inodo -> tamEnBytesLog%BLOCKSIZE == 0){
+        ultimoBL = inodo -> tamEnBytesLog/BLOCKSIZE -1;
+    }else{
+        ultimoBL = inodo -> tamEnBytesLog/BLOCKSIZE;
     }
+
     memset(bufAux_punteros, 0, BLOCKSIZE);
     ptr = 0;
 
-    for (nbl = primerBL ; nbl <= ultimoBL ; nbl++){
-        if ((nRangoBL = obtener_nRangoBL(&inodo, nbl, &ptr)) < 0) {
-            return - 1;
+    fprintf(stderr, "[liberar_bloques_inodo() → primer BL: %i, último BL: %i]\n",
+    primerBL, ultimoBL);
+
+    for (nBL = primerBL ; nBL <= ultimoBL ; nBL++){
+        nRangoBL = obtener_nRangoBL(inodo, nBL, &ptr); // &inodo por utilizar inodo_t
+        if(nRangoBL < 0){
+            return -1;
         }
+
         nivel_punteros = nRangoBL;
-        while ((ptr > 0) && (nivel_punteros > 0)){
-            indice = obtener_indice(nbl, nivel_punteros);
-            if((indice == 0) || (nbl = primerBL)){
-                bread(ptr, &bloque_punteros[nivel_punteros - 1]);//puede dar fallo por ptr
+
+        while((ptr > 0) && (nivel_punteros > 0)){
+            indice = obtener_indice(nBL, nivel_punteros);
+            if((indice == 0) || (nBL == primerBL)){
+                if(bread(ptr, bloques_punteros[nivel_punteros-1]) == -1){ // Leemos bloque
+                    fprintf(stderr, "Error while reading\n");
+                    return -1;
+                }  
             }
-            ptr_nivel[nivel_punteros -1] = ptr;
+
+            ptr_nivel[nivel_punteros - 1] = ptr;
             indices[nivel_punteros - 1] = indice;
             ptr = bloques_punteros[nivel_punteros - 1][indice];
             nivel_punteros--;
         }
 
-        if (ptr > 0){
-            liberar_bloque(ptr); //puede dar fallo por ptr
+        if(ptr > 0 ){
+            liberar_bloque(ptr);
             liberados++;
-            if (nRangoBL == 0){
-                inodo.punterosDirectos[nbl] = 0;
-            } else {
+
+            fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %i de datos para BL: %i]\n",
+            ptr, nBL);
+
+            if(nRangoBL == 0){
+                inodo -> punterosDirectos[nBL] = 0;
+            }else{
                 nivel_punteros = 1;
-                while (nivel_punteros <= nRangoBL){
+                while(nivel_punteros <= nRangoBL ){
                     indice = indices[nivel_punteros - 1];
-                    bloques_punteros[nivel_punteros -1][indice] = 0;
-                    ptr = ptr_nivel[nivel_punteros - 1];
-                    if (memcmp(&bloque_punteros[nivel_punteros - 1],bufAux_punteros,BLOCKSIZE) == 0){
+                    bloques_punteros[nivel_punteros - 1][indice] = 0;
+                    ptr = ptr_nivel[nivel_punteros -1];
+
+                    if(memcmp(bloques_punteros[nivel_punteros - 1], bufAux_punteros, BLOCKSIZE) == 0){
                         liberar_bloque(ptr);
                         liberados++;
-                        //aqui dice que hay que mejorar el algoritmo para saltar bloques que no hace falta explorar
-                        //pero ahora mismo ni zorra.
+
+                        fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %i de punteros_nivel%i correspondiente al BL: %i]\n",
+                        ptr, nivel_punteros + 1, nBL);
+
                         if(nivel_punteros == nRangoBL){
-                            inodo.punterosIndirectos[nRangoBL - 1] = 0;
+                            inodo -> punterosIndirectos[nRangoBL - 1] = 0;
                         }
                         nivel_punteros++;
-                    } else {
-                        bwrite(ptr, bloques_punteros[nivel_punteros - 1]); //puede dar fallo por ptr
+                    }else{
+                        if(bwrite(ptr, bloques_punteros[nivel_punteros-1]) == -1){ // Leemos bloque
+                            fprintf(stderr, "Error while writing\n");
+                            return -1;
+                        } 
+                        
                         nivel_punteros = nRangoBL + 1;
-                        //dice que aqui tenemos que salir del bucle porque
-                        //no es necesario liberar los bloques de niveles superiores
-                        //de los que cuelga
                     }
                 }
             }
         }
-
     }
+
+    fprintf(stderr, "[liberar_bloques_inodo() → total bloques liberados: %i]\n",
+    liberados);
+    
     return liberados;
 }

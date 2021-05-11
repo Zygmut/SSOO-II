@@ -72,4 +72,4 @@ int obtener_indice(int nblogico, int nivel_punteros);
 int traducir_bloque_inodo(int ninodo, int nblogico, char reservar);
 
 int liberar_inodo(unsigned int ninodo);
-int liberar_bloques_inodo(unsigned int primerBL, inodo_t inodo);
+int liberar_bloques_inodo(unsigned int primerBL, inodo_t *inodo);

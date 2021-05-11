@@ -245,32 +245,28 @@ int mi_stat_f(unsigned int ninodo, struct STAT *p_stat){
 int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
     inodo_t inodo;
     int liberados = 0;
-    //struct tm *ts;
-    inodo.atime=time(NULL);
-    inodo.mtime=time(NULL);
-    inodo.ctime=time(NULL);
 
     if (leer_inodo(ninodo, &inodo) < 0){
         return -1;
     }
-    if (inodo.permisos == 6){ //tiene permisos para escribir
+
+    if ((inodo.permisos & 2) == 2){ //tiene permisos para escribir
+
         if (nbytes % BLOCKSIZE == 0){
-            liberados = liberar_bloques_inodo(nbytes/BLOCKSIZE, inodo);
+            liberados = liberar_bloques_inodo(nbytes/BLOCKSIZE, &inodo);
         } else {
-            liberados = liberar_bloques_inodo(nbytes/BLOCKSIZE + 1, inodo);
+            liberados = liberar_bloques_inodo(nbytes/BLOCKSIZE + 1, &inodo);
         }
 
-        if(liberados > 0){
-            inodo.tamEnBytesLog = nbytes;
-            inodo.atime=time(NULL);
-            inodo.mtime=time(NULL);
-            inodo.ctime=time(NULL);
-            //ts = localtime(&inodo.atime);   // TOOO BAAAD!
-            //ts = localtime(&inodo.mtime);
-            //ts = localtime(&inodo.ctime);
-            inodo.numBloquesOcupados = inodo.numBloquesOcupados - liberados;
-            escribir_inodo(ninodo, inodo);
-        }
+        inodo.numBloquesOcupados -= liberados;
+        inodo.tamEnBytesLog = nbytes;
+        
+        inodo.mtime = time(NULL);
+        inodo.ctime = time(NULL);
+
+        return liberados;
     }
-    return liberados;
+
+    fprintf(stderr,"Node [%d] doesn't have writing privileges\n", ninodo);
+    return -1;
 }
