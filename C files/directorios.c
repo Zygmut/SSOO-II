@@ -22,6 +22,7 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo){
         } else { //no hay dir luego es un fichero
             //copiamos camino en inicial sin primera /
             strncpy(inicial, camino + 1, sizeof(char) * strlen(camino) - 1); //+1 para evitar la primera '/'
+            strcpy(final, " ");
             strcpy(tipo, "f");
             return 0;
         }   
@@ -75,16 +76,18 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo){
         b_leidos += mi_read_f(*p_inodo_dir, &buf_entradas, b_leidos, BLOCKSIZE);
 
         while((num_entrada_inodo < cant_entradas_inodo) && (strcmp(inicial,buf_entradas[num_entrada_inodo].nombre) != 0)){
-            printf("ENTRO DENTRO DEL WHILE\n");
+            
             num_entrada_inodo++;
             if((num_entrada_inodo % (BLOCKSIZE / sizeof(struct entrada))) == 0){
                 b_leidos += mi_read_f(*p_inodo_dir,&buf_entradas,b_leidos,BLOCKSIZE);
             }
         }
     }
-
-    if((strcmp(inicial,buf_entradas[num_entrada_inodo].nombre)) != 0){ //strcmp be? maybe !=?
+    
+    if(((strcmp(inicial,buf_entradas[num_entrada_inodo].nombre)) != 0)){ //strcmp be? maybe !=?
+    
         switch (reservar) {
+            
         case 0: 
             return ERROR_NO_EXISTE_ENTRADA_CONSULTA;
         case 1:
@@ -100,7 +103,7 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo){
                 if(tipo == 'd'){
                     if(strcmp(final,"/") == 0){
                         entrada.ninodo = reservar_inodo('d',6);
-                        fprintf(stderr, "[buscar_entrada() → reservado inodo: %d tipo 'd' con permisos %c para: %s]\n", entrada.ninodo, permisos, entrada.nombre);
+                        fprintf(stderr, "[buscar_entrada() → reservado inodo: %d tipo 'd' con permisos %u para: %s]\n", entrada.ninodo, permisos, entrada.nombre);
                     }else{
                         // printf(" ERROR_NO_EXISTE_DIRECTORIO_INTERMEDIO (BUSCAR_ENTRADA, DIRECTORIOS.C)");
                         return ERROR_NO_EXISTE_DIRECTORIO_INTERMEDIO;
@@ -108,12 +111,13 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo){
                     
                 }else{
                     entrada.ninodo = reservar_inodo('f',6);
-                    fprintf(stderr, "[buscar_entrada() → reservado inodo: %d tipo 'f' con permisos %c para: %s]\n", entrada.ninodo, permisos, entrada.nombre);
+                    fprintf(stderr, "[buscar_entrada() → reservado inodo: %d tipo 'f' con permisos %u para: %s]\n", entrada.ninodo, permisos, entrada.nombre);
                 }
 
-                
-                if(mi_write_f(*p_inodo_dir, &entrada, inodo_dir.tamEnBytesLog,sizeof(struct entrada)) == -1){
-                    
+               
+                 printf("[buscar_entrada()-> creada entrada: %s inodo: %d] \n", inicial, entrada.ninodo);
+                if( mi_write_f(*p_inodo_dir, &entrada, inodo_dir.tamEnBytesLog,sizeof(struct entrada)) == -1){
+                   
                     if(entrada.ninodo != -1){
                         fprintf(stderr, "[buscar_entrada() → liberado inodo %i, reservado a %s\n", num_entrada_inodo, inicial);
                         liberar_inodo(entrada.ninodo);
@@ -121,7 +125,8 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo){
 
                     return EXIT_FAILURE;
                 }
-                
+               
+            
             }
         }
     

@@ -526,11 +526,11 @@ int traducir_bloque_inodo(int ninodo, int nblogico, char reservar){
                 inodo.ctime = time(NULL);
 
                 if(nivel_punteros == nRangoBL){
-                    printf("[traducir_bloque_inodo()→ inodo.punterosIndirectos[%i] = %i (reservado BF %i para punteros_nivel%i)]\n", nRangoBL - 1, ptr, ptr, nivel_punteros);
+                    //printf("[traducir_bloque_inodo()→ inodo.punterosIndirectos[%i] = %i (reservado BF %i para punteros_nivel%i)]\n", nRangoBL - 1, ptr, ptr, nivel_punteros);
                     inodo.punterosIndirectos[nRangoBL-1] = ptr; // IMPRIMIR PARA TEST
                 }else{
                     buffer[indice] = ptr; 
-                    printf("[traducir_bloque_inodo()→ inodo.punteros_nivel%i[%i] = %i (reservado BF %i para punteros_nivel%i)]\n", nivel_punteros, indice, ptr, ptr, nivel_punteros);
+                    //printf("[traducir_bloque_inodo()→ inodo.punteros_nivel%i[%i] = %i (reservado BF %i para punteros_nivel%i)]\n", nivel_punteros, indice, ptr, ptr, nivel_punteros);
                     if(bwrite(ptr_ant, buffer) == -1){
                         fprintf(stderr, "Error while writing\n");
                         return -1;
@@ -557,12 +557,12 @@ int traducir_bloque_inodo(int ninodo, int nblogico, char reservar){
             inodo.numBloquesOcupados++;
             inodo.ctime = time(NULL);
             if(nRangoBL == 0){
-                printf("[traducir_bloque_inodo()→ inodo.punterosDirectos[%i] = %i (reservado BF %i para BL %i)]\n", nblogico, ptr, ptr, nblogico);
+               // printf("[traducir_bloque_inodo()→ inodo.punterosDirectos[%i] = %i (reservado BF %i para BL %i)]\n", nblogico, ptr, ptr, nblogico);
                 inodo.punterosDirectos[nblogico] = ptr; //IMPRIMIR TEST
                 
             }else{ // print nRangoBL
                 buffer[indice] = ptr; //IMPRIMIR TEST
-                printf("[traducir_bloque_inodo()→ inodo.punteros_nivel1[%i] = %i (reservado BF %i para BL %i)]\n", indice, ptr, ptr, nblogico);
+               // printf("[traducir_bloque_inodo()→ inodo.punteros_nivel1[%i] = %i (reservado BF %i para BL %i)]\n", indice, ptr, ptr, nblogico);
                 if(bwrite(ptr_ant, buffer) == -1){
                     fprintf(stderr, "Error while writing\n");
                     return -1;
