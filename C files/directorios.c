@@ -131,8 +131,8 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo){
         }
     
      }
-    if ((strcmp(final, "/")) == 0){
-        if ((num_entrada_inodo < cant_entradas_inodo) && (reservar=1)){
+    if (((strcmp(final, "/")) == 0) || (tipo == 'f')){   // Tambien tenemos en cuenta si es un fichero
+        if ((num_entrada_inodo < cant_entradas_inodo) && (reservar==1)){
             // printf("ERROR_ENTRADA_YA_EXISTENTE, (BUSCAR_ENTRADA, DIRECTORIOS.C)");
             return ERROR_ENTRADA_YA_EXISTENTE;
         }
@@ -141,7 +141,9 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo){
         return EXIT_SUCCESS;
     }
     else{
+        // printf("yeet\n");
         *p_inodo_dir = buf_entradas[num_entrada_inodo].ninodo;
+        
         return buscar_entrada(final,p_inodo_dir,p_inodo,p_entrada,reservar,permisos);
     }
 }
