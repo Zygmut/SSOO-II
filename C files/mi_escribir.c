@@ -11,7 +11,10 @@ int main(int argc, char **argsv){
 
     if(argsv[2][pathL-1] != '/'){ // es un fichero
 
-        bmount(argsv[1]);
+        if (bmount(argsv[1]) == -1){
+        fprintf(stderr,"Error while mounting\n");
+        return -1;
+    }
 
         char *camino = argsv[2];
         char *buffer_texto = argsv[3];
