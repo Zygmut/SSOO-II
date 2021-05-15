@@ -37,7 +37,7 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo){
 
     return 0;
 }
- int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsigned int *p_inodo, unsigned int *p_entrada, char reservar, unsigned char permisos){
+int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsigned int *p_inodo, unsigned int *p_entrada, char reservar, unsigned char permisos){
     //reservamos variables
     superbloque_t SB;
     struct entrada entrada;
@@ -104,13 +104,13 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo){
 
             if((inodo_dir.permisos & 2) != 2){
                 return  ERROR_PERMISO_ESCRITURA;
-            }else {
+            } else {
                 strcpy(entrada.nombre,inicial);
                 if(tipo == 'd'){
                     if(strcmp(final,"/") == 0){
                         entrada.ninodo = reservar_inodo('d',6);
                         fprintf(stderr, "[buscar_entrada() → reservado inodo: %d tipo 'd' con permisos %u para: %s]\n", entrada.ninodo, permisos, entrada.nombre);
-                    }else{
+                    } else {
                         // printf(" ERROR_NO_EXISTE_DIRECTORIO_INTERMEDIO (BUSCAR_ENTRADA, DIRECTORIOS.C)");
                         return ERROR_NO_EXISTE_DIRECTORIO_INTERMEDIO;
                     }
@@ -129,14 +129,14 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo){
                         liberar_inodo(entrada.ninodo);
                     }
 
-                    return EXIT_FAILURE;
+                    return -1;//EXIT_FAILURE;
                 }
                
             
             }
         }
     
-     }
+    }
     if (((strcmp(final, "/")) == 0) || (tipo == 'f')){   // Tambien tenemos en cuenta si es un fichero
         if ((num_entrada_inodo < cant_entradas_inodo) && (reservar==1)){
             // printf("ERROR_ENTRADA_YA_EXISTENTE, (BUSCAR_ENTRADA, DIRECTORIOS.C)");
@@ -144,9 +144,9 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo){
         }
         *p_inodo = buf_entradas[num_entrada_inodo].ninodo;
         *p_entrada = num_entrada_inodo;
-        return EXIT_SUCCESS;
-    }
-    else{
+        return 0;//esto no se si da el resultado esperado.
+        // Quizás tendria que poner "return 0"
+    }else{
         // printf("yeet\n");
         *p_inodo_dir = buf_entradas[num_entrada_inodo].ninodo;
         

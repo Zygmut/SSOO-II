@@ -11,7 +11,10 @@ int main(int argc, char **argsv){
 
     if(argsv[2][pathL-1] != '/'){ // es un fichero
 
-        bmount(argsv[1]);
+        if (bmount(argsv[1]) == -1){
+        fprintf(stderr,"Error while mounting\n");
+        return -1;
+    }
         
         char *camino = argsv[2];
         int tambuffer = BLOCKSIZE * 4 ; // o 1500
@@ -41,7 +44,7 @@ int main(int argc, char **argsv){
         }
 
         bumount();
-        fprintf(stderr,"Se han leido %d bytes\n",total_bytes_leidos);
+        fprintf(stderr,"\nSe han leido %d bytes\n",total_bytes_leidos);
         return 0;
     }
     else{ //no es un fichero
