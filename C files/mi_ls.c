@@ -29,7 +29,7 @@ int main(int argc,char **argv){
             bumount();
             return -1;
         }
-        printf("TIPO\tPERMISOS\tMTIME\t\t\tTAMAÑO\tNOMBRE\n");
+        printf("TIPO\tPERMISOS\tMTIME\t\tTAMAÑO\tNOMBRE\n");
         printf("-----------------------------------------------------\n%s", buffer);
     }else{
         bumount();

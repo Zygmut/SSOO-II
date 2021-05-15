@@ -4,8 +4,7 @@
 static struct UltimaEntrada UltimaEntradaEscritura;
 
 int extraer_camino(const char *camino, char *inicial, char *final, char *tipo){
-    int siDir = 0; //me encanta que no hayan booleanas en C, es muy triste 
-                    //Alexa play end - Clowncore
+    int siDir = 0; 
     const char barra = '/';
     if(camino[0] == barra ){        
         
@@ -350,7 +349,7 @@ int mi_stat(const char *camino, struct STAT *p_stat){
     }
 
     mi_stat_f(p_inodo, p_stat);
-    return 0;
+    return p_inodo;
 }
 
 int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned int nbytes){
@@ -360,8 +359,8 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
        p_inodo = UltimaEntradaEscritura.p_inodo;
     }else{
 
-        if(buscar_entrada(camino,&p_inodo_dir,&p_inodo,&p_entrada,0,2) == -1){
-            fprintf(stderr,"Error in buscar_entrada");
+        if(buscar_entrada(camino,&p_inodo_dir,&p_inodo,&p_entrada,0,2) < -1){ // Permisos 2 par escritura 
+            fprintf(stderr,"Error in buscar_entrada\n");
             return -1;
         }
 
@@ -371,20 +370,19 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
     return mi_write_f(p_inodo, buf, offset, nbytes);
 }
 
-int mi_read(const char *camino, const void *buf, unsigned int offset, unsigned int nbytes){
+int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nbytes){
     unsigned int p_inodo_dir=0,p_inodo=0,p_entrada=0;
 
-    if(strcmp(UltimaEntradaEscritura.camino, camino) == 0){ //vemos si es escritura sobre el mismo inodo
+    if(strcmp(camino, UltimaEntradaEscritura.camino) == 0){ //vemos si es escritura sobre el mismo inodo
         p_inodo = UltimaEntradaEscritura.p_inodo;
-    }
-    else{
-        if(buscar_entrada(camino,&p_inodo_dir,&p_inodo,&p_entrada,0,4) == -1){
-            fprintf(stderr,"Error in buscar_entrada");
+    }else{
+        if(buscar_entrada(camino,&p_inodo_dir,&p_inodo,&p_entrada,0,4) < 0){ // Permisos 4 para lectura
+            fprintf(stderr,"Error in buscar_entrada\n");
             return -1;
         }
 
         strcpy(UltimaEntradaEscritura.camino, camino);
         UltimaEntradaEscritura.p_inodo = p_inodo;
     }
-    return mi_read_f(p_inodo, &buf, offset, nbytes);
+    return mi_read_f(p_inodo, buf, offset, nbytes);
 }

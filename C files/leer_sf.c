@@ -32,8 +32,8 @@ int main(int argc, char **argsv){
         // block_test();
         // printInodo(SB.posInodoRaiz);
 
-        // Test traducir_bloque_inodo()
-        test_lvl_7();
+        // traducir_bloque_inodo()
+        // test_lvl_7();
         if(bumount() == -1){
         fprintf(stderr, "Error while unmounting\n");
         return -1;

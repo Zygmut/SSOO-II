@@ -19,12 +19,12 @@ int main(int argc, char **argsv){
 
         int nbytes = mi_write(camino,buffer_texto, offset , strlen(buffer_texto));
 
-        if(nbytes == -1){ //lee 0 bytes no -1
+        if(nbytes == -1){ //escribe 0 bytes no -1
             nbytes = 0;
         }
 
         bumount();
-        fprintf(stderr,"Se han escrito %d bytes",nbytes);
+        fprintf(stderr,"Se han escrito %d bytes\n",nbytes);
         return 0;
     }
     else{ //no es un fichero

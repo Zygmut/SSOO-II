@@ -21,11 +21,16 @@ int main(int argc,char **argv){
     strftime(cdate, 24, "%a %d-%m-%Y %H:%M:%S", info = localtime(&p_stat.ctime));
     strftime(mdate, 24, "%a %d-%m-%Y %H:%M:%S", info = localtime(&p_stat.mtime));
     
-    printf("Ruta: %s\tNinodo: %i\n", argv[2], ninodo);
-    printf("Tamaño: %i\tBloques: %i\tLinks: %i\n", p_stat.tamEnBytesLog, p_stat.numBloquesOcupados, p_stat.nlinks);
-    printf("Tipo: %c\tPermisos: %i\n", p_stat.tipo, p_stat.permisos);
-    printf("Acceso: %s\n", adate);
-    printf("Modificación: %s\n", mdate);
-    printf("Cambio: %s\n", cdate);
+    printf("Ninodo: %i\n", ninodo);
+    printf("Tipo: %c\n", p_stat.tipo);
+    printf("Permisos: %i\n", p_stat.permisos);
+    printf("atime: %s\n", adate);
+    printf("mtime: %s\n", mdate);
+    printf("ctime: %s\n", cdate);
+    printf("nLinks: %i\n", p_stat.nlinks);
+    printf("Tamaño: %i\n", p_stat.tamEnBytesLog);
+    printf("Bloques ocupados: %i\n", p_stat.numBloquesOcupados);
+    
+    
     bumount();
 }

@@ -14,14 +14,34 @@ int main(int argc, char **argsv){
         bmount(argsv[1]);
         
         char *camino = argsv[2];
-        int tambuffer = 1500;
-        char *lectura = malloc(tambuffer);
-        unsigned int offset=0,nbytes =0;
-
-        nbytes = mi_read(camino,lectura,offset,tambuffer);
+        int tambuffer = BLOCKSIZE * 4 ; // o 1500
+        char read[tambuffer];
         
+        if(memset(read, 0, sizeof(read)) == NULL){ // Cleansing
+            fprintf(stderr, "Error while setting memory\n");
+            return -1;
+        }
+
+        //char *lectura = malloc(tambuffer);
+        unsigned int offset=0,bytes_leidos =0,total_bytes_leidos=0;
+
+        bytes_leidos = mi_read(camino,read,offset,tambuffer);
+        while(bytes_leidos  > 0){
+            write(1, read, bytes_leidos); //Motrar resultados por pantalla
+            total_bytes_leidos += bytes_leidos;
+            offset += tambuffer;
+
+            if(memset(read, 0, sizeof(read)) == NULL){ // Cleansing
+                fprintf(stderr, "Error while setting memory\n");
+                return -1;
+            }
+
+            bytes_leidos = mi_read(camino,read,offset,tambuffer);
+
+        }
+
         bumount();
-        fprintf(stderr,"Se han leido %d bytes",nbytes);
+        fprintf(stderr,"Se han leido %d bytes\n",total_bytes_leidos);
         return 0;
     }
     else{ //no es un fichero
