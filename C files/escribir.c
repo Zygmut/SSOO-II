@@ -13,7 +13,7 @@ int aux1, aux2 =0;
 
 int main(int argc, char **argv){
 
-    if(argv[1] == NULL || argv[2] == NULL /*|| argv[2] == NULL*/ || argv[3] == NULL){ // Checkear syntax 
+    if(argv[1] == NULL || argv[2] == NULL || argv[3] == NULL){ // Checkear syntax 
         fprintf(stderr,"Command syntax should be: escribir <nombre_dispositivo> <\"$(cat fichero)\"> <diferentes_diferentes_inodos>\n");
         return -1;
     }

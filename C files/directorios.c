@@ -1,4 +1,7 @@
 #include "directorios.h"
+#define TAMFILA 100
+
+static struct UltimaEntrada UltimaEntradaEscritura;
 
 int extraer_camino(const char *camino, char *inicial, char *final, char *tipo){
     int siDir = 0; //me encanta que no hayan booleanas en C, es muy triste 
@@ -41,11 +44,15 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo){
     struct entrada entrada;
     inodo_t inodo_dir;
     char inicial[sizeof(entrada.nombre)];
+    memset(inicial, 0, sizeof(inicial));
     char final[strlen(camino_parcial)];
 
     char tipo;
     int cant_entradas_inodo,num_entrada_inodo;
-    bread(posSB, &SB);
+    if(bread(posSB, &SB) == -1){  // Leer el SuperBloque para tener los valores actuales 
+        fprintf(stderr, "Error while reading SB\n");
+        return -1;
+    }
     
     //camino_parcial es "/"
     if(camino_parcial[0] == '/' && strlen(camino_parcial) == 1){
@@ -66,7 +73,7 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo){
 
     //calculamos número de entradas a inodo
     struct entrada buf_entradas[BLOCKSIZE / sizeof(struct entrada)];
-    memset(buf_entradas, 0, sizeof(buf_entradas)); //Init a 0's
+    memset(buf_entradas, '\0', sizeof(buf_entradas)); //Init a 0's
     int b_leidos = 0;
 
     cant_entradas_inodo = inodo_dir.tamEnBytesLog / sizeof(struct entrada);
@@ -159,4 +166,225 @@ void mostrar_error_buscar_entrada(int error) {
    case -6: fprintf(stderr, "Error: El archivo ya existe.\n"); break;
    case -7: fprintf(stderr, "Error: No es un directorio.\n"); break;
    }
+}
+
+int mi_creat(const char *camino, unsigned char permisos){
+    superbloque_t SB;
+    
+    if(bread(posSB, &SB) == -1){  // Leer el SuperBloque para tener los valores actuales 
+        fprintf(stderr, "Error while reading SB\n");
+        return -1;
+    }
+
+    unsigned int p_entrada = 0,p_inodo_dir = 0,p_inodo = 0; //asumimos que es 0 por simplicidad
+    //unsigned int p_inodo = SB.posInodoRaiz;
+    char reservar = 1;
+
+    int error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, reservar, permisos); //Permisos lectura va bien
+    if(error < 0){ // la entrada no ha sido la esperada
+        mostrar_error_buscar_entrada(error);
+        return -1;
+    }
+    return 0;
+}
+
+int mi_dir(const char *camino, char *buffer, char *tipo){
+    struct tm *tm;
+    superbloque_t SB;
+
+    if(bread(posSB, &SB) == -1){  // Leer el SuperBloque para tener los valores actuales 
+        fprintf(stderr, "Error while reading SB\n");
+        return -1;
+    }
+
+    inodo_t inodo;
+    int error;
+    unsigned int p_inodo_dir, p_inodo;
+    p_inodo_dir = SB.posInodoRaiz; p_inodo = SB.posInodoRaiz;
+    unsigned int p_entrada = 0;
+    error = buscar_entrada(camino, &p_inodo_dir, &p_inodo,&p_entrada, 0, 4); //Permisos lectura va bien
+    if(error < 0){ // la entrada no ha sido la esperada
+        mostrar_error_buscar_entrada(error);
+        return -1;
+    }
+
+    leer_inodo(p_inodo, &inodo);
+
+    if((inodo.permisos & 4) != 4){ // Checkeamos si tiene permisos de lectura
+        fprintf(stderr, "Inodo doesn't have reading privileges\n");
+        return -1;
+    }
+
+    char tmp[100]; // Para el tiempo
+    char tamEnBytes[10]; // buffer de capacidad 10 ya que es el valor maximo de un unsigned int
+    struct entrada entrada;
+    char nomTipo[2];
+    if(camino[(strlen(camino))-1] == '/'){ // En el caso que sea un directorio
+        leer_inodo(p_inodo, &inodo);
+        *tipo = inodo.tipo;
+        // Datos validos, creamos el buffer de salida
+        int offset = 0;
+        struct entrada entradas[BLOCKSIZE / sizeof(struct entrada)];
+        int cantEntradas = inodo.tamEnBytesLog / sizeof(struct entrada);
+        
+        printf("Total : %i\n", cantEntradas);
+        offset += mi_read_f(p_inodo, entradas, offset, BLOCKSIZE);
+        
+        for(int i = 0; i < cantEntradas; i++){
+            // Leemos todos los inodos / entradas
+            leer_inodo(entradas[i % (BLOCKSIZE / sizeof(struct entrada))].ninodo, &inodo); //Leemos el inodo correspndiente
+            
+            //Tipo
+
+            nomTipo[0] = inodo.tipo;
+            nomTipo[1] = '\0';
+            strcat(buffer, nomTipo);
+            strcat(buffer, "\t");
+
+            //Permisos
+
+            strcat(buffer, ((inodo.permisos & 4) == 4) ? "r" : "-");
+            strcat(buffer, ((inodo.permisos & 2) == 2) ? "w" : "-");
+            strcat(buffer, ((inodo.permisos & 1) == 1) ? "x" : "-");
+            strcat(buffer, "\t");
+            
+            //mTime
+            tm = localtime(&inodo.mtime);
+            sprintf(tmp, "%d-%02d-%02d %02d:%02d:%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min,  tm->tm_sec);
+            strcat(buffer, tmp);
+            strcat(buffer, "\t");
+
+            //Tamaño
+            sprintf(tamEnBytes, "%d", inodo.tamEnBytesLog);
+            strcat(buffer, tamEnBytes);
+            strcat(buffer, "\t");
+
+            //Nombre
+
+            strcat(buffer, entradas[i % (BLOCKSIZE / sizeof(struct entrada))].nombre);
+            while((strlen(buffer) % TAMFILA) != 0){
+                strcat(buffer, " ");
+            }
+
+            strcat(buffer, "\n"); //Preparamos el string para la siguiente entrada
+
+            if(offset % (BLOCKSIZE/sizeof(struct entrada)) == 0){ 
+                offset += mi_read_f(p_inodo, entradas, offset, BLOCKSIZE);
+            }
+        }
+    }else{ // No es un directorio, es un archivo
+        mi_read_f(p_inodo_dir, &entrada, sizeof(struct entrada) * p_entrada, sizeof(struct entrada));
+        leer_inodo(entrada.ninodo, &inodo);
+        *tipo = inodo.tipo;
+
+        nomTipo[0] = inodo.tipo;
+        nomTipo[1] = '\0';
+        strcat(buffer, nomTipo);
+        strcat(buffer, "\t");
+        
+        //Permisos
+        strcat(buffer, ((inodo.permisos & 4) == 4) ? "r" : "-");
+        strcat(buffer, ((inodo.permisos & 2) == 2) ? "w" : "-");
+        strcat(buffer, ((inodo.permisos & 1) == 1) ? "x" : "-");
+        strcat(buffer, "\t");
+        
+        //mTime
+        tm = localtime(&inodo.mtime);
+        sprintf(tmp, "%d-%02d-%02d %02d:%02d:%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min,  tm->tm_sec);
+        strcat(buffer, tmp);
+        strcat(buffer, "\t");
+
+        //Tamaño
+        sprintf(tamEnBytes, "%d", inodo.tamEnBytesLog);
+        strcat(buffer, tamEnBytes);
+        strcat(buffer, "\t");
+
+        //Nombre
+        strcat(buffer, entrada.nombre);
+
+        while((strlen(buffer) % TAMFILA) != 0){
+            strcat(buffer, " ");
+        }
+        
+        strcat(buffer, "\n"); //Preparamos el string para la siguiente entrada
+    }
+    return 0;
+
+}
+
+int mi_chmod(const char *camino, unsigned char permisos){
+    superbloque_t SB;
+
+    if(bread(posSB, &SB) == -1){  // Leer el SuperBloque para tener los valores actuales 
+        fprintf(stderr, "Error while reading SB\n");
+        return -1;
+    }
+    int error;
+    unsigned int p_inodo_dir, p_inodo;
+    p_inodo_dir = SB.posInodoRaiz; p_inodo = SB.posInodoRaiz;
+    unsigned int p_entrada = 0;
+    error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, permisos);
+    if(error < 0){ // la entrada no ha sido la esperada
+        mostrar_error_buscar_entrada(error);
+        return -1;
+    }
+    mi_chmod_f(p_inodo, permisos); // funcion de ficheros
+    return 0;
+}
+
+int mi_stat(const char *camino, struct STAT *p_stat){
+    superbloque_t SB;
+
+    if(bread(posSB, &SB) == -1){  // Leer el SuperBloque para tener los valores actuales 
+        fprintf(stderr, "Error while reading SB\n");
+        return -1;
+    }
+    int error;
+    unsigned int p_inodo_dir, p_inodo;
+    p_inodo_dir = SB.posInodoRaiz; p_inodo = SB.posInodoRaiz;
+    unsigned int p_entrada = 0;
+    error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4); // Permisos de lectura, no queremos modificar nada
+    if(error < 0){ // la entrada no ha sido la esperada
+        mostrar_error_buscar_entrada(error);
+        return -1;
+    }
+
+    mi_stat_f(p_inodo, p_stat);
+    return 0;
+}
+
+int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned int nbytes){
+    unsigned int p_inodo_dir=0,p_inodo=0,p_entrada=0;
+
+    if(strcmp(UltimaEntradaEscritura.camino, camino) == 0){ //vemos si es escritura sobre el mismo inodo
+       p_inodo = UltimaEntradaEscritura.p_inodo;
+    }else{
+
+        if(buscar_entrada(camino,&p_inodo_dir,&p_inodo,&p_entrada,0,2) == -1){
+            fprintf(stderr,"Error in buscar_entrada");
+            return -1;
+        }
+
+        strcpy(UltimaEntradaEscritura.camino, camino);
+        UltimaEntradaEscritura.p_inodo = p_inodo;
+    }
+    return mi_write_f(p_inodo, buf, offset, nbytes);
+}
+
+int mi_read(const char *camino, const void *buf, unsigned int offset, unsigned int nbytes){
+    unsigned int p_inodo_dir=0,p_inodo=0,p_entrada=0;
+
+    if(strcmp(UltimaEntradaEscritura.camino, camino) == 0){ //vemos si es escritura sobre el mismo inodo
+        p_inodo = UltimaEntradaEscritura.p_inodo;
+    }
+    else{
+        if(buscar_entrada(camino,&p_inodo_dir,&p_inodo,&p_entrada,0,4) == -1){
+            fprintf(stderr,"Error in buscar_entrada");
+            return -1;
+        }
+
+        strcpy(UltimaEntradaEscritura.camino, camino);
+        UltimaEntradaEscritura.p_inodo = p_inodo;
+    }
+    return mi_read_f(p_inodo, &buf, offset, nbytes);
 }
