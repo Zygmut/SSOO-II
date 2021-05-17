@@ -393,8 +393,16 @@ int mi_link(const char *camino1, const char *camino2){
         return -1;
     }
 
-    unsigned int p_entrada1 = 0, p_inodo_dir1 = 0, p_inodo1 = 0; //asumimos que es 0 por simplicidad
-    unsigned int p_entrada2 = 0, p_inodo_dir2 = 0, p_inodo2 = 0; //asumimos que es 0 por simplicidad
+    superbloque_t SB;    
+    if(bread(posSB, &SB) == -1){  // Leer el SuperBloque para tener los valores actuales 
+        fprintf(stderr, "Error while reading SB\n");
+        return -1;
+    }
+
+    unsigned int p_entrada1 = 0, p_inodo_dir1, p_inodo1; 
+    unsigned int p_entrada2 = 0, p_inodo_dir2, p_inodo2; 
+
+    p_inodo_dir1 = p_inodo1 = p_inodo_dir2 = p_inodo2 = SB.posInodoRaiz; 
 
     int error1 = buscar_entrada(camino1, &p_inodo_dir1, &p_inodo1, &p_entrada1, 0, 4); //Permisos lectura va bien
     if(error1 < 0){ // camino 1 no existe
@@ -403,27 +411,23 @@ int mi_link(const char *camino1, const char *camino2){
     }
 
     int error2 = buscar_entrada(camino2, &p_inodo_dir2, &p_inodo2, &p_entrada2, 1, 6); //Permisos lectura va bien
-    if((error2 != -6) && (error2 != 0)){ //Algun error inesperado que hará fallar el link
+    if(error2 < 0){ //Algun error inesperado que hará fallar el link
         mostrar_error_buscar_entrada(error2);
         return -1;
     }
     
     struct entrada entrada;
-    // Leer la entrada creada correspondiente a camino 2, osea la entrada p_entrada2 de p_inodo_dir2
     mi_read_f(p_inodo_dir2, &entrada, (p_entrada2 * sizeof(struct entrada)), sizeof(struct entrada));
+    liberar_inodo(entrada.ninodo);
     entrada.ninodo = p_inodo1; // Asociamos p_entrada2 con p_inodo1
 
-    // Escribimos la entrada modificada de nuevo en p_inodo_dir2
     mi_write_f(p_inodo_dir2, &entrada, (p_entrada2 * sizeof(struct entrada)), sizeof(struct entrada));
-    liberar_inodo(p_inodo2); 
 
     inodo_t inodo;
     leer_inodo(p_inodo1, &inodo);
     inodo.nlinks++;
     inodo.ctime = time(NULL);
     escribir_inodo(p_inodo1, inodo);
-    //free(p_inodo2); //supongo que hay que liberar esta variable porque C y C es mierda
-    //p_inodo2 = p_inodo1;
     return 0;
 }
 
@@ -435,14 +439,13 @@ int mi_unlink(const char *camino){
         return -1;
     }
 
-    inodo_t inodo;
+    inodo_t inodo, inodo_dir;
     int error;
-    unsigned int p_inodo_dir, p_inodo;
-    p_inodo_dir = SB.posInodoRaiz;
-    p_inodo = SB.posInodoRaiz;
-    unsigned int p_entrada = 0;
+    unsigned int p_entrada = 0, p_inodo_dir, p_inodo; 
 
-    error = buscar_entrada(camino, &p_inodo_dir, &p_inodo,&p_entrada, 0, 4); //Permisos lectura va bien
+    p_inodo_dir = p_inodo = SB.posInodoRaiz; 
+
+    error = buscar_entrada(camino, &p_inodo_dir, &p_inodo,&p_entrada, 0, 6); //Permisos lectura escritura
     if(error < 0){ // la entrada no ha sido la esperada
         mostrar_error_buscar_entrada(error);
         return -1;
@@ -454,17 +457,16 @@ int mi_unlink(const char *camino){
         fprintf(stderr, "El inodo[%d] seleccionado es un directorio que no esta vacio\n", p_inodo);
         return-1;
     }else{
-        leer_inodo(p_inodo_dir, &inodo);
-        int num_entradas = inodo.tamEnBytesLog / sizeof(struct entrada);
+        leer_inodo(p_inodo_dir, &inodo_dir);
+        int num_entradas = inodo_dir.tamEnBytesLog / sizeof(struct entrada);
         
         if(p_entrada != num_entradas - 1){ // La entrada a eleminar no es la ultima 
             struct entrada entrada;
             mi_read_f(p_inodo_dir, &entrada, (num_entradas - 1) * sizeof(struct entrada), sizeof(struct entrada));
             mi_write_f(p_inodo_dir, &entrada, p_entrada * sizeof(struct entrada), sizeof(struct entrada));
         }
-        mi_truncar_f(p_inodo_dir, (inodo.tamEnBytesLog - sizeof(struct entrada)));
+        mi_truncar_f(p_inodo_dir, (num_entradas - 1) * sizeof(struct entrada)); // borramos una entrada
         
-        leer_inodo(p_inodo, &inodo);
         inodo.nlinks--;
         if(inodo.nlinks == 0){
             liberar_inodo(p_inodo);
