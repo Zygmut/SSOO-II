@@ -3,6 +3,16 @@
 
 static struct UltimaEntrada UltimaEntradaEscritura;
 
+/*
+ * Dada una cadena de caracteres separa su contenido en inicial y final
+ * 
+ * Input:   *camino  => Path a extraer
+ *          *inicial => Porcion de camino comprendida entre los dos primeros '/'
+ *          *final   => Porcion de camino comprendida a partir del segundo '/', este ultimo incluido
+ *          *tipo    => tipo
+ * 
+ * Output: -1 if error, 0 otherwise 
+ */ 
 int extraer_camino(const char *camino, char *inicial, char *final, char *tipo){
     int siDir = 0; 
     const char barra = '/';
@@ -37,6 +47,20 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo){
 
     return 0;
 }
+
+/*
+ * Esta función buscará una determinada entrada entre las entradas del inodo correspondiente a su directorio
+ * padre. 
+ * 
+ * Input:   *camino_parcial  => Cadena de caracteres "path"
+ *          *p_inodo_dir     => nº del inodo "padre"
+ *          *p_inodo         => nº del inodo al que esta asociado el nombre de la entrada buscada
+ *          *p_entrada       => nº de la entrada dentro del inodo *p_inodo_dir que lo contiene
+ *          reservar         => 0 si se quiere consultar, 1 si en caso de no existir, reservar dichos inodos
+ *          permisos         => permisos 
+ * 
+ * Output: -1 if error, 0 otherwise 
+ */ 
 int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsigned int *p_inodo, unsigned int *p_entrada, char reservar, unsigned char permisos){
     //reservamos variables
     superbloque_t SB;
@@ -88,7 +112,6 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
             if((num_entrada_inodo % (BLOCKSIZE / sizeof(struct entrada))) == 0){
                 memset(buf_entradas, 0, sizeof(buf_entradas)); //Limpiamos el buffer
                 b_leidos += mi_read_f(*p_inodo_dir,buf_entradas,b_leidos,BLOCKSIZE);
-                // fprintf(stderr, "HE leido otro bloque\n");
             }
         }
     }
@@ -96,7 +119,6 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     fprintf(stderr, "nombre : %s\n", buf_entradas[num_entrada_inodo].nombre);
     if((strcmp(inicial, buf_entradas[num_entrada_inodo % (BLOCKSIZE / sizeof(struct entrada))].nombre)) != 0){ //strcmp be? maybe !=?
     
-    // fprintf(stderr, "He entrado al switch\n");
         switch (reservar) {
             
         case 0: 
@@ -150,13 +172,18 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
         return 0;//esto no se si da el resultado esperado.
         // Quizás tendria que poner "return 0"
     }else{
-        // printf("yeet\n");
         *p_inodo_dir = buf_entradas[num_entrada_inodo].ninodo;
         
         return buscar_entrada(final,p_inodo_dir,p_inodo,p_entrada,reservar,permisos);
     }
 }
 
+/*
+ * Esta función actua como un "switch" para mostrar los diferentes posibles errores  
+ * 
+ * Input:   error => nº del error en cuestion
+ * Output: String del error pasado por parametro
+ */ 
 void mostrar_error_buscar_entrada(int error) {
    switch (error) {
    case -1: fprintf(stderr, "Error: Camino incorrecto.\n"); break;
@@ -169,6 +196,14 @@ void mostrar_error_buscar_entrada(int error) {
    }
 }
 
+/*
+ * Esta función nos crea un archivo en un path pasado por parámetros con unos permisos dados
+ * 
+ * Input:   *camino     => "path" a crear el archivo
+ *          permisos    => permisos 
+ * 
+ * Output: -1 if error, 0 otherwise 
+ */ 
 int mi_creat(const char *camino, unsigned char permisos){
     superbloque_t SB;
     
@@ -189,6 +224,15 @@ int mi_creat(const char *camino, unsigned char permisos){
     return 0;
 }
 
+/*
+ * Esta función guarda en un buffer los contenidos de un directorio o un fichero
+ * 
+ * Input:   *camino     => "path" a leer
+ *          *buffer     => buffer a guardar los contenidos
+ *          *tipo       => utilidad para ficheros 
+ * 
+ * Output: -1 if error, 0 otherwise 
+ */ 
 int mi_dir(const char *camino, char *buffer, char *tipo){
     struct tm *tm;
     superbloque_t SB;
@@ -236,14 +280,12 @@ int mi_dir(const char *camino, char *buffer, char *tipo){
             leer_inodo(entradas[i % (BLOCKSIZE / sizeof(struct entrada))].ninodo, &inodo); //Leemos el inodo correspndiente
             
             //Tipo
-
             nomTipo[0] = inodo.tipo;
             nomTipo[1] = '\0';
             strcat(buffer, nomTipo);
             strcat(buffer, "\t");
 
             //Permisos
-
             strcat(buffer, ((inodo.permisos & 4) == 4) ? "r" : "-");
             strcat(buffer, ((inodo.permisos & 2) == 2) ? "w" : "-");
             strcat(buffer, ((inodo.permisos & 1) == 1) ? "x" : "-");
@@ -313,6 +355,14 @@ int mi_dir(const char *camino, char *buffer, char *tipo){
 
 }
 
+/*
+ * Esta función permite modificar los permisos de un archivo
+ * 
+ * Input:   *camino     => "path" a cambiar los permisos
+ *          permisos    => permisos a usar  
+ * 
+ * Output: -1 if error, 0 otherwise 
+ */ 
 int mi_chmod(const char *camino, unsigned char permisos){
     superbloque_t SB;
 
@@ -334,6 +384,14 @@ int mi_chmod(const char *camino, unsigned char permisos){
     return 0;
 }
 
+/*
+ * Esta función nos permite visualizar los datos del inodo asociado al "path pasado por parametro"
+ * 
+ * Input:   *camino     => "path" a leer
+ *          *p_stat     => estructura donde guardaremos los datos 
+ * 
+ * Output: -1 if error, 0 otherwise 
+ */ 
 int mi_stat(const char *camino, struct STAT *p_stat){
     superbloque_t SB;
 
@@ -355,6 +413,16 @@ int mi_stat(const char *camino, struct STAT *p_stat){
     return p_inodo;
 }
 
+/*
+ * Esta función nos permite escribir en un fichero
+ * 
+ * Input:   *camino     => "path" a escribir
+ *          *buffer     => buffer a escribir
+ *          offset      => offset de escritura 
+ *          nbytes      => tamaño 
+ * 
+ * Output: nº bytes escritos
+ */ 
 int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned int nbytes){
     unsigned int p_inodo_dir=0,p_inodo=0,p_entrada=0;
 
@@ -373,6 +441,16 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
     return mi_write_f(p_inodo, buf, offset, nbytes);
 }
 
+/*
+ * Esta función nos permite leer el contenido de un fichero
+ * 
+ * Input:   *camino     => "path" a leer
+ *          *buffer     => buffer a leer
+ *          offset      => offset de lectura 
+ *          nbytes      => tamaño 
+ * 
+ * Output: nº bytes leidos
+ */ 
 int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nbytes){
     unsigned int p_inodo_dir=0,p_inodo=0,p_entrada=0;
 
@@ -390,7 +468,15 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
     return mi_read_f(p_inodo, buf, offset, nbytes);
 }
 
-
+/*
+ * Esta función nos permite crear un enlace de directorio camino2 al inodo especificado por otra entrada de 
+ * directorio, camino1 a un fichero
+ * 
+ * Input:   *camino1     => "path maestro"
+ *          *camino2     => "path esclavo"
+ * 
+ * Output: -1 if error, 0 otherwise
+ */ 
 int mi_link(const char *camino1, const char *camino2){
 
     if((camino1[strlen(camino1)-1] == '/') || (camino2[strlen(camino2)-1] == '/')){ // Ambos son ficheros
@@ -436,6 +522,13 @@ int mi_link(const char *camino1, const char *camino2){
     return 0;
 }
 
+/*
+ * Esta función nos permite borrar la entrada de directorio especificada por parametro
+ * 
+ * Input:   *camino1     => "path" a borrar
+ * 
+ * Output: -1 if error, 0 otherwise
+ */ 
 int mi_unlink(const char *camino){
     superbloque_t SB;
 

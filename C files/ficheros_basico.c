@@ -581,6 +581,12 @@ int traducir_bloque_inodo(int ninodo, int nblogico, char reservar){
     return (int) ptr; 
 }
 
+/*
+ * Esta función se encarga de "eliminar" un inodo.
+ * 
+ * Input:   ninodo    => inodo del que se traducirá
+ * Output:  nº  del inodo eliminado
+ */ 
 int liberar_inodo(unsigned int ninodo){
     inodo_t inodo;
 
@@ -610,16 +616,16 @@ int liberar_inodo(unsigned int ninodo){
     }
 
     return ninodo;
-    /* Notas para tener en cuenta:
-        - El superbloque se lee cuando se invoca "leer_inodo", asi que en principio no hace falta
-        hacerlo de nuevo en este método.
-        - SB.posPrimerInodoLibre es una variable que se incrementa cuando se reserva un inodo, por lo que
-        es lógico pensar que se decrementa cuando se libera algun inodo. En el pdf se comenta que se tiene
-        que actualizar una lista enlazada SB.posPrimerInodoLibre, algo que no he visto en el código. Con esto
-        quiero decir que puede ser un posible fallo.
-    */
 }
 
+/*
+ * Esta función se encarga de liberar todos los bloques ocupados a partir de un bloque logico pasado por parametro 
+ * de un inodo
+ * 
+ * Input:   primerBL  => Punto de partida de "eliminacion"
+ *          *inodo    => inodo
+ * Output:  Cantidad de bloques eliminados
+ */ 
 int liberar_bloques_inodo(unsigned int primerBL, inodo_t *inodo){
     unsigned int nivel_punteros, indice, ptr, nBL, ultimoBL;
     int nRangoBL;
@@ -710,8 +716,6 @@ int liberar_bloques_inodo(unsigned int primerBL, inodo_t *inodo){
         }
     }
 
-    fprintf(stderr, "[liberar_bloques_inodo() → total bloques liberados: %i]\n",
-    liberados);
-    
+    fprintf(stderr, "[liberar_bloques_inodo() → total bloques liberados: %i]\n", liberados);
     return liberados;
 }

@@ -81,7 +81,6 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
             bytes_escritos += desp2 + 1;
             
         }
-        //bytes_escritos += offset; // not really sure about this one thou
         //actualizamos inodo
        
         leer_inodo(ninodo,&inodo);
@@ -109,7 +108,6 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
  *          offset          => posición inicia de lectura con respecto al inodo (en bytes)
  *          nbytes          => numero de bytes a leer
  * Output:  0 uppon success, 1 otherwise
- * Using:   none 
  */ 
 int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes){
     inodo_t inodo;
@@ -206,7 +204,6 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
  * Input:   ninodo      => Nº del inodo a leer
  *          permisos    => nuevo permiso del inodo
  * Output:  0 uppon success, -1 otherwise
- * Using:   none 
  */ 
 int mi_chmod_f(unsigned int ninodo, unsigned char permisos){
     inodo_t inodo;
@@ -223,7 +220,6 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos){
  * Input:   ninodo      => Nº del inodo a leer
  *          *p_stat      => STAT
  * Output:  0 uppon success, -1 otherwise 
- * Using:   none 
  */ 
 int mi_stat_f(unsigned int ninodo, struct STAT *p_stat){
     inodo_t inodo;
@@ -242,6 +238,14 @@ int mi_stat_f(unsigned int ninodo, struct STAT *p_stat){
     return 0;
 }
 
+/*
+ * Trunca un ficero/directorio correspondiente al ninodo pasado por argumento, a los bytes indicados por nbytes
+ * liberando bloques necesarios
+ * 
+ * Input:   ninodo      => Nº del inodo a truncar
+ *          nbytes      => Nº de bytes a truncar ( como si fuese un offset)
+ * Output:  Nº de bytes liberados
+ */ 
 int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
     inodo_t inodo;
     int liberados = 0;
