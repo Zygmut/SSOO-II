@@ -19,7 +19,6 @@ int main(int argc, char **argv){
         bmount(argv[1]);
 
         if (mi_creat(argv[3],atoi(argv[2])) == -1){
-            fprintf(stderr,"Error al crear\n");
             bumount();
             return -1;
         }

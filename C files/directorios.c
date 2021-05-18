@@ -72,26 +72,31 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
 
     //calculamos número de entradas a inodo
     struct entrada buf_entradas[BLOCKSIZE / sizeof(struct entrada)];
-    memset(buf_entradas, '\0', sizeof(buf_entradas)); //Init a 0's
+    memset(buf_entradas, 0, sizeof(buf_entradas)); //Init a 0's
     int b_leidos = 0;
 
     cant_entradas_inodo = inodo_dir.tamEnBytesLog / sizeof(struct entrada);
     num_entrada_inodo = 0;
     
     if(cant_entradas_inodo > 0 ){
-        b_leidos += mi_read_f(*p_inodo_dir, &buf_entradas, b_leidos, BLOCKSIZE);
-
-        while((num_entrada_inodo < cant_entradas_inodo) && (strcmp(inicial,buf_entradas[num_entrada_inodo].nombre) != 0)){
+        b_leidos += mi_read_f(*p_inodo_dir, buf_entradas, b_leidos, BLOCKSIZE);
+      
+        while((num_entrada_inodo < cant_entradas_inodo) && (strcmp(inicial,buf_entradas[num_entrada_inodo % (BLOCKSIZE / sizeof(struct entrada))].nombre) != 0)){
             
             num_entrada_inodo++;
+            fprintf(stderr,"num_inodo: %i\tcantidad_entradas: %i\n", num_entrada_inodo, cant_entradas_inodo);
             if((num_entrada_inodo % (BLOCKSIZE / sizeof(struct entrada))) == 0){
-                b_leidos += mi_read_f(*p_inodo_dir,&buf_entradas,b_leidos,BLOCKSIZE);
+                memset(buf_entradas, 0, sizeof(buf_entradas)); //Limpiamos el buffer
+                b_leidos += mi_read_f(*p_inodo_dir,buf_entradas,b_leidos,BLOCKSIZE);
+                // fprintf(stderr, "HE leido otro bloque\n");
             }
         }
     }
     
-    if(((strcmp(inicial,buf_entradas[num_entrada_inodo].nombre)) != 0)){ //strcmp be? maybe !=?
+    fprintf(stderr, "nombre : %s\n", buf_entradas[num_entrada_inodo].nombre);
+    if((strcmp(inicial, buf_entradas[num_entrada_inodo % (BLOCKSIZE / sizeof(struct entrada))].nombre)) != 0){ //strcmp be? maybe !=?
     
+    // fprintf(stderr, "He entrado al switch\n");
         switch (reservar) {
             
         case 0: 
@@ -121,7 +126,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
                 }
 
                
-                 printf("[buscar_entrada()-> creada entrada: %s inodo: %d] \n", inicial, entrada.ninodo);
+                printf("[buscar_entrada() -> creada entrada: %s inodo: %d] \n", inicial, entrada.ninodo);
                 if( mi_write_f(*p_inodo_dir, &entrada, inodo_dir.tamEnBytesLog,sizeof(struct entrada)) == -1){
                    
                     if(entrada.ninodo != -1){
@@ -214,7 +219,7 @@ int mi_dir(const char *camino, char *buffer, char *tipo){
     char tmp[100]; // Para el tiempo
     char tamEnBytes[10]; // buffer de capacidad 10 ya que es el valor maximo de un unsigned int
     struct entrada entrada;
-    char nomTipo[2];
+    char nomTipo[2]; // para el nombre del archivo
     if(camino[(strlen(camino))-1] == '/'){ // En el caso que sea un directorio
         leer_inodo(p_inodo, &inodo);
         *tipo = inodo.tipo;
@@ -468,7 +473,7 @@ int mi_unlink(const char *camino){
         mi_truncar_f(p_inodo_dir, (num_entradas - 1) * sizeof(struct entrada)); // borramos una entrada
         
         inodo.nlinks--;
-        if(inodo.nlinks == 0){
+        if(inodo.nlinks == 0){ // liberar_inodo actualiza el tamaño del inodo "padre"???
             liberar_inodo(p_inodo);
         }else{
             inodo.ctime = time(NULL);

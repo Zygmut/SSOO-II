@@ -264,6 +264,7 @@ int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
         inodo.mtime = time(NULL);
         inodo.ctime = time(NULL);
 
+        escribir_inodo(ninodo, inodo);
         return liberados;
     }
 

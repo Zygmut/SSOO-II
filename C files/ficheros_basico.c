@@ -592,6 +592,10 @@ int liberar_inodo(unsigned int ninodo){
     /* Liberamos el inodo en cuestión */
 
     inodo.numBloquesOcupados -= liberar_bloques_inodo(0, &inodo);
+    if(inodo.numBloquesOcupados != 0){
+        return -1;
+    }
+
     inodo.tipo = 'l';
     inodo.tamEnBytesLog = 0;
     inodo.punterosDirectos[0] = SB.posPrimerInodoLibre;
