@@ -14,8 +14,9 @@
 int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offset, unsigned int nbytes){
     inodo_t inodo;
     int bytes_escritos = 0;
+    
     leer_inodo(ninodo, &inodo);
-
+    
     if ((inodo.permisos & 2) == 2) {
         int primerBL = offset / BLOCKSIZE;
         int ultimoBL = (offset + nbytes - 1) / BLOCKSIZE;
@@ -82,7 +83,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
             
         }
         //actualizamos inodo
-       
+        mi_waitSem();
         leer_inodo(ninodo,&inodo);
         // printf("TAMENBYTESLOG %d \n",inodo.tamEnBytesLog);//SHOULD BE STAT?
         if(inodo.tamEnBytesLog < (bytes_escritos+offset)){
@@ -91,7 +92,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         }
         inodo.mtime = time(NULL);
         escribir_inodo(ninodo, inodo);
-       
+        mi_signalSem();
         return bytes_escritos;
     }else{
         fprintf(stderr, "Inodo[%d] doesn't have writing privileges\n", ninodo);
@@ -114,10 +115,12 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
     int bytes_leidos = 0;
     
     //Modificamos el atime
+    mi_waitSem();
     leer_inodo(ninodo, &inodo);
     inodo.atime = time(NULL);
     escribir_inodo(ninodo, inodo);
-
+    mi_signalSem();
+    
     if(offset >= inodo.tamEnBytesLog){
         return bytes_leidos; // return 0;
     }
@@ -188,7 +191,6 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
             bytes_leidos += desp2 + 1;
         }
         
-       
         return bytes_leidos;
         
 
@@ -207,10 +209,12 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
  */ 
 int mi_chmod_f(unsigned int ninodo, unsigned char permisos){
     inodo_t inodo;
+    mi_waitSem();
     leer_inodo(ninodo, &inodo);
     inodo.permisos = permisos;
     inodo.ctime = time(NULL);
     escribir_inodo(ninodo, inodo);
+    mi_signalSem();
     return 0;
 }
 

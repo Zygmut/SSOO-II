@@ -1,7 +1,10 @@
 // Jaume, Marc, Ruben
 #include "bloques.h"
+#include "semaforo_mutex_posix.h"
 
 static int descriptor = 0;
+static unsigned int inside_sc = 0;
+static sem_t *mutex;
 
 /*
  * Montar una unidad virtual
@@ -11,8 +14,21 @@ static int descriptor = 0;
  * Using:   open 
  */
 int bmount(const char* path){
+    if(descriptor > 0){
+        close(descriptor);
+    }
+    
     umask(000);     // Correct permissions rw-rw-rw
     descriptor = open(path, O_RDWR|O_CREAT, 0666);
+    if(!mutex){
+        mutex = initSem();
+        if(mutex == SEM_FAILED){
+            return -1;
+        }
+    }
+
+
+
     return descriptor; //Error should be handled by the user as this returns -1 in case of error
 }
 
@@ -23,7 +39,9 @@ int bmount(const char* path){
  * Using:   close
  */
 int bumount(){
-    return close(descriptor); //Error should be handled by the user, same thing as open
+    deleteSem();
+    descriptor = close(descriptor);
+    return descriptor; //Error should be handled by the user, same thing as open
 }
 
 /*
@@ -54,4 +72,23 @@ int bread(unsigned int n_block, void *buf){
         return -1;
     }
     return read(descriptor, buf, BLOCKSIZE);
+}
+
+/*
+ * Control del semáforo WAIT
+ */
+void mi_waitSem() {
+   if (!inside_sc) { // inside_sc==0
+       waitSem(mutex);
+   }
+   inside_sc++;
+}
+/*
+ * Control del semáforo SIGNAL 
+ */
+void mi_signalSem() {
+   inside_sc--;
+   if (!inside_sc) {
+       signalSem(mutex);
+   }
 }

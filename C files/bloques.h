@@ -1,4 +1,5 @@
 // Jaume, Marc, Ruben
+
 #include <stdio.h>      // printf(), fprintf(), stderr, stdout, stdin
 #include <fcntl.h>      // O_WRONLY, O_CREAT, O_TRUNC
 #include <sys/stat.h>   // S_IRUSR, S_IWUSR
@@ -13,3 +14,5 @@ int bmount(const char *path);
 int bumount();
 int bwrite(unsigned int n_block, const void *buf);
 int bread(unsigned int n_block, void *buf);
+void mi_waitSem();
+void mi_signalSem();
