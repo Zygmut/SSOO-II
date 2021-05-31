@@ -14,17 +14,20 @@
 int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offset, unsigned int nbytes){
     inodo_t inodo;
     int bytes_escritos = 0;
-    
+    int primerBL = offset / BLOCKSIZE;
+    int ultimoBL = (offset + nbytes - 1) / BLOCKSIZE;
+    int desp1 = offset % BLOCKSIZE;
+    int desp2 = (offset + nbytes - 1) % BLOCKSIZE;
+    unsigned char buf_bloque[BLOCKSIZE];
+
     leer_inodo(ninodo, &inodo);
     
     if ((inodo.permisos & 2) == 2) {
-        int primerBL = offset / BLOCKSIZE;
-        int ultimoBL = (offset + nbytes - 1) / BLOCKSIZE;
-        int desp1 = offset % BLOCKSIZE;
-        int desp2 = (offset + nbytes - 1) % BLOCKSIZE;
-        unsigned char buf_bloque[BLOCKSIZE];
-        int nbfisico = traducir_bloque_inodo(ninodo, primerBL, 1);
         
+
+        mi_waitSem();
+        int nbfisico = traducir_bloque_inodo(ninodo, primerBL, 1);
+        mi_signalSem();
         //cabe en un solo bloque
         if(primerBL == ultimoBL){
             
@@ -56,9 +59,12 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
             bytes_escritos+=BLOCKSIZE-desp1;
 
             //bloques lógicos intermedios
+            
             for(int i = primerBL+1; i < ultimoBL; i++){
+                mi_waitSem();
                 nbfisico = traducir_bloque_inodo(ninodo,i,1);
-                
+                mi_signalSem();
+
                 if(bwrite(nbfisico,buf_original + (BLOCKSIZE - desp1) + (i - primerBL - 1) * BLOCKSIZE) == -1){
                     fprintf(stderr, "Error while writing\n");
                     return -1;    
@@ -68,7 +74,11 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
             }
 
             //último bloque lógico
+            mi_waitSem();
             nbfisico = traducir_bloque_inodo(ninodo,ultimoBL,1);
+            mi_signalSem();
+
+           
             if(bread(nbfisico,buf_bloque) == -1){
                fprintf(stderr, "Error while reading\n");
                return -1;
@@ -113,13 +123,13 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
 int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes){
     inodo_t inodo;
     int bytes_leidos = 0;
-    
-    //Modificamos el atime
     mi_waitSem();
     leer_inodo(ninodo, &inodo);
     inodo.atime = time(NULL);
     escribir_inodo(ninodo, inodo);
     mi_signalSem();
+    //Modificamos el atime
+    
     
     if(offset >= inodo.tamEnBytesLog){
         return bytes_leidos; // return 0;
@@ -135,8 +145,10 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
         int desp1 = offset % BLOCKSIZE;
         
         unsigned char buf_bloque[BLOCKSIZE];
+        
         int nbfisico = traducir_bloque_inodo(ninodo, primerBL, 0);
         
+
         // Todo cabe en un solo bloque
         if(primerBL == ultimoBL){ 
             if(nbfisico != -1){ 
@@ -163,8 +175,11 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
             bytes_leidos = BLOCKSIZE - desp1;
             
             // Bloques intermedios
-            for(int i = primerBL + 1; i < ultimoBL; i ++){ 
+            for(int i = primerBL + 1; i < ultimoBL; i ++){
+                
                 nbfisico = traducir_bloque_inodo(ninodo, i, 0);
+               
+
                 if(nbfisico != -1){
                     if(bread(nbfisico, buf_bloque) == -1){ 
                         fprintf(stderr, "Error while reading\n");
@@ -178,19 +193,22 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
 
             // Ultimo bloque
             int desp2 = (offset + nbytes - 1) % BLOCKSIZE;
-
+            
             nbfisico = traducir_bloque_inodo(ninodo, ultimoBL, 0);
+            
             if(nbfisico != -1){  
                 if(bread(nbfisico, buf_bloque) == -1){
                     fprintf(stderr, "Error while reading\n");
                     return -1;
                 }
-                memcpy (buf_original + (nbytes - desp2 - 1), buf_bloque, desp2 + 1);
+                memcpy(buf_original + (nbytes - desp2 - 1), buf_bloque, desp2 + 1);
                 
             }
             bytes_leidos += desp2 + 1;
         }
-        
+
+       
+
         return bytes_leidos;
         
 
@@ -253,8 +271,8 @@ int mi_stat_f(unsigned int ninodo, struct STAT *p_stat){
 int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
     inodo_t inodo;
     int liberados = 0;
-
     if (leer_inodo(ninodo, &inodo) < 0){
+        
         return -1;
     }
 
@@ -273,9 +291,11 @@ int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
         inodo.ctime = time(NULL);
 
         escribir_inodo(ninodo, inodo);
+        
         return liberados;
     }
 
     fprintf(stderr,"Node [%d] doesn't have writing privileges\n", ninodo);
+    
     return -1;
 }

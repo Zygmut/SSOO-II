@@ -1,6 +1,6 @@
 #include "simulacion.h"
-#define NUMPROCESOS 3
-#define NUMESCRITURAS 10
+#define NUMPROCESOS 100
+#define NUMESCRITURAS 50
 #define REGMAX 500000
 
 int acabados = 0;
@@ -37,7 +37,7 @@ int main(int argc,char **argv){
     strcat(path, tmp); 
     strcat(path, "/"); 
 
-    mi_creat(path, '6');    
+    mi_creat(path, 6);    
 
     for(int proceso = 1; proceso <= NUMPROCESOS; proceso++){
         pid = fork();
@@ -59,12 +59,12 @@ int main(int argc,char **argv){
             strcat(path_d, pid_d);
             strcat(path_d, "/");
 
-            mi_creat(path_d, '6');
+            mi_creat(path_d, 6);
 
             
             strcpy(path_f, path_d);
             strcat(path_f, "prueba.dat");
-            mi_creat(path_f, '6');
+            mi_creat(path_f, 6);
 
             srand(time(NULL) + getpid());
             struct REGISTRO registro;
@@ -86,7 +86,7 @@ int main(int argc,char **argv){
             bumount();
             exit(0);
         }
-        usleep(2000);
+        usleep(200000);
         
     }
     while(acabados < NUMPROCESOS){
@@ -94,6 +94,6 @@ int main(int argc,char **argv){
     }
     fprintf(stderr, "Total de procesos terminados: %d\n", acabados);
     bumount();
-    
+    return 0;
 }
 

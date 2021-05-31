@@ -27,8 +27,6 @@ int bmount(const char* path){
         }
     }
 
-
-
     return descriptor; //Error should be handled by the user as this returns -1 in case of error
 }
 
@@ -39,8 +37,9 @@ int bmount(const char* path){
  * Using:   close
  */
 int bumount(){
-    deleteSem();
+    
     descriptor = close(descriptor);
+    deleteSem();
     return descriptor; //Error should be handled by the user, same thing as open
 }
 

@@ -433,9 +433,9 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
     if(strcmp(UltimaEntradaEscritura.camino, camino) == 0){ //vemos si es escritura sobre el mismo inodo
        p_inodo = UltimaEntradaEscritura.p_inodo;
     }else{
-
-        if(buscar_entrada(camino,&p_inodo_dir,&p_inodo,&p_entrada,0,2) < -1){ // Permisos 2 par escritura 
-            fprintf(stderr,"Error in buscar_entrada\n");
+        int error;
+        if( (error = buscar_entrada(camino,&p_inodo_dir,&p_inodo,&p_entrada,0,2)) < -1){ // Permisos 2 par escritura 
+            mostrar_error_buscar_entrada(error);
             return -1;
         }
 
@@ -461,8 +461,9 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
     if(strcmp(camino, UltimaEntradaEscritura.camino) == 0){ //vemos si es escritura sobre el mismo inodo
         p_inodo = UltimaEntradaEscritura.p_inodo;
     }else{
-        if(buscar_entrada(camino,&p_inodo_dir,&p_inodo,&p_entrada,0,4) < 0){ // Permisos 4 para lectura
-            fprintf(stderr,"Error in buscar_entrada\n");
+        int error;
+        if((error = buscar_entrada(camino,&p_inodo_dir,&p_inodo,&p_entrada,0,4)) < 0){ // Permisos 4 para lectura
+            mostrar_error_buscar_entrada(error);    
             return -1;
         }
 
@@ -517,11 +518,10 @@ int mi_link(const char *camino1, const char *camino2){
     
     struct entrada entrada;
     mi_read_f(p_inodo_dir2, &entrada, (p_entrada2 * sizeof(struct entrada)), sizeof(struct entrada));
-    liberar_inodo(entrada.ninodo);
     entrada.ninodo = p_inodo1; // Asociamos p_entrada2 con p_inodo1
 
     mi_write_f(p_inodo_dir2, &entrada, (p_entrada2 * sizeof(struct entrada)), sizeof(struct entrada));
-
+    
     inodo_t inodo;
     leer_inodo(p_inodo1, &inodo);
     inodo.nlinks++;
@@ -577,6 +577,7 @@ int mi_unlink(const char *camino){
             mi_write_f(p_inodo_dir, &entrada, p_entrada * sizeof(struct entrada), sizeof(struct entrada));
         }
         mi_truncar_f(p_inodo_dir, (num_entradas - 1) * sizeof(struct entrada)); // borramos una entrada
+        
         
         inodo.nlinks--;
         if(inodo.nlinks == 0){ // liberar_inodo actualiza el tamaño del inodo "padre"???
