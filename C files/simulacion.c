@@ -42,6 +42,10 @@ int main(int argc,char **argv){
     for(int proceso = 1; proceso <= NUMPROCESOS; proceso++){
         pid = fork();
         if(pid == 0){
+            //Hijo
+            if(bmount(argv[1]) == -1){
+                fprintf(stderr, "Error while mounting\n");
+            }
             char path_d[40];
             char path_f[50];
             memset(path_d, 0, sizeof(path_d));
@@ -67,14 +71,15 @@ int main(int argc,char **argv){
             mi_creat(path_f, 6);
 
             srand(time(NULL) + getpid());
-            struct REGISTRO registro;
-
+            
+            
             for(int nescritura=1; nescritura <= NUMESCRITURAS; nescritura++){
+                struct REGISTRO registro;
                 registro.fecha = time(NULL);
                 registro.pid = getpid();
                 registro.nEscritura = nescritura;
                 registro.nRegistro = rand() % REGMAX;
-
+                
                 mi_write(path_f, &registro, registro.nRegistro * sizeof(struct REGISTRO), sizeof(struct REGISTRO));
                 fprintf(stderr,"[simulacion.c -> Escritura %d en %s]\n", nescritura, path_f);
                 usleep(50000);

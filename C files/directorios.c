@@ -395,7 +395,7 @@ int mi_chmod(const char *camino, unsigned char permisos){
  *          *p_stat     => estructura donde guardaremos los datos 
  * 
  * Output: -1 if error, 0 otherwise 
- */ 
+ */
 int mi_stat(const char *camino, struct STAT *p_stat){
     superbloque_t SB;
 
@@ -435,7 +435,7 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
     }else{
         int error;
         if( (error = buscar_entrada(camino,&p_inodo_dir,&p_inodo,&p_entrada,0,2)) < -1){ // Permisos 2 par escritura 
-            mostrar_error_buscar_entrada(error);
+            mostrar_error_buscar_entrada(error); //este no es
             return -1;
         }
 
