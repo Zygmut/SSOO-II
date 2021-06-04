@@ -13,40 +13,30 @@ static struct UltimaEntrada UltimaEntradaEscritura;
  * 
  * Output: -1 if error, 0 otherwise 
  */ 
-int extraer_camino(const char *camino, char *inicial, char *final, char *tipo){
-    int siDir = 0; 
-    const char barra = '/';
-    if(camino[0] == barra ){        
-        
-        for (int i = 1 ; (i < strlen(camino)) && (siDir==0); i++) { // Iteramos por todo el path
-            if(camino[i] != barra){
-                inicial[i-1] = camino[i];
-            }else{
-                siDir = 1;
-                strcpy(final,camino+i);
-            }
-        }
+int extraer_camino(const char *camino, char *inicial, char *final, char *tipo)
+{
+    //El camino ha de empezar por /
+    if (camino[0] == '/'){
 
-        //si dir
-        if(siDir == 1){
-            strcpy(tipo, "d");
-            return 1;
-        } else { //no hay dir luego es un fichero
-            //copiamos camino en inicial sin primera /
-            strncpy(inicial, camino + 1, sizeof(char) * strlen(camino) - 1); //+1 para evitar la primera '/'
-            strcpy(final, " ");
-            strcpy(tipo, "f");
-            return 0;
-        }   
-        
-    }
+        if (!strchr(camino + 1, '/')){ //Si solo tiene la / inicial, es un fichero
+            strcpy(inicial, camino + 1);
+            *tipo = 'f';
+            strcpy(final,"");
+            //*final = '\0';
+        }
+        else{   //Sino, es un directorio
+        strncpy(inicial, camino + 1, strchr(camino + 1, '/')- camino - 1);
+        *tipo = 'd';
+        strcpy(final, strchr(camino + 1, '/'));
+        }  
+    } 
     else{
-        // fprintf(stderr, "ERROR en extraer_camino, no empieza por /");
-        return ERROR_CAMINO_INCORRECTO;
+        return -1;
     }
 
     return 0;
-} 
+}
+
 
 
 
