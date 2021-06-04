@@ -103,11 +103,16 @@ int main(int argc,char **argv){
                     contadorEscriturasValidadas ++;
                 }
             }
-
-            
             memset(buffer_escrituras, 0, sizeof(buffer_escrituras)); 
         }
+        //obtener la escritura de la ultima posición //será delimitada por el EOF
+        //Añadir la información del struct info al fichero informe.txt por el final
+        printRegistro();
     }
 
     bumount();
+}
+
+void printRegistro(){ //metodo para printear los registros
+
 }
