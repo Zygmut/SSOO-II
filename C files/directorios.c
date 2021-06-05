@@ -22,7 +22,7 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo)
             strcpy(inicial, camino + 1);
             *tipo = 'f';
             strcpy(final,"");
-            //*final = '\0';
+           
         }
         else{   //Sino, es un directorio
         strncpy(inicial, camino + 1, strchr(camino + 1, '/')- camino - 1);
@@ -375,9 +375,11 @@ int mi_chmod(const char *camino, unsigned char permisos){
         return -1;
     }
     int error;
-    unsigned int p_inodo_dir, p_inodo;
-    p_inodo_dir = SB.posInodoRaiz; p_inodo = SB.posInodoRaiz;
-    unsigned int p_entrada = 0;
+    unsigned int p_inodo_dir, p_inodo, p_entrada = 0;
+    
+    p_inodo_dir = SB.posInodoRaiz; 
+    p_inodo = SB.posInodoRaiz;
+    
     error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, permisos);
     if(error < 0){ // la entrada no ha sido la esperada
         mostrar_error_buscar_entrada(error);
@@ -404,9 +406,11 @@ int mi_stat(const char *camino, struct STAT *p_stat){
         return -1;
     }
     int error;
-    unsigned int p_inodo_dir, p_inodo;
-    p_inodo_dir = SB.posInodoRaiz; p_inodo = SB.posInodoRaiz;
-    unsigned int p_entrada = 0;
+    unsigned int p_inodo_dir, p_inodo,p_entrada = 0;
+
+    p_inodo_dir = SB.posInodoRaiz;
+    p_inodo = SB.posInodoRaiz;
+    
     error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4); // Permisos de lectura, no queremos modificar nada
     if(error < 0){ // la entrada no ha sido la esperada
         mostrar_error_buscar_entrada(error);

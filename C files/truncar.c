@@ -28,17 +28,15 @@ int main(int argc, char **argv){
     strftime(adate, 24, "%a %d-%m-%Y %H:%M:%S", info = localtime(&p_stat.atime));
     strftime(cdate, 24, "%a %d-%m-%Y %H:%M:%S", info = localtime(&p_stat.ctime));
     strftime(mdate, 24, "%a %d-%m-%Y %H:%M:%S", info = localtime(&p_stat.mtime));
-    printf("\nDATOS INODO [%i]\n\
-    tipo=%c\n\
-    permisos=%i\n\
-    atime: %s\n\
-    ctime: %s\n\
-    mtime: %s\n\
-    nlinks: %i\n\
-    tamEnBytesLog=%i\n\
-    numBloquesOcupados=%i\n",
-    ninodo, p_stat.tipo, p_stat.permisos, adate, cdate, mdate, p_stat.nlinks, p_stat.tamEnBytesLog, p_stat.numBloquesOcupados);
-
+    printf("\nDATOS INODO [%i]\n");
+    printf("tipo: %c\n", p_stat.tipo);
+    printf("permisos: %i\n", p_stat.permisos);
+    printf("atime: %s\n", adate);
+    printf("mtime: %s\n", mdate);
+    printf("Ctime: %s\n", cdate);
+    printf("nlinks: %u\n", p_stat.nlinks);
+    printf("tamEnBytesLog: %u\n", p_stat.tamEnBytesLog);
+    printf("numBloquesOcupados: %u\n", p_stat.numBloquesOcupados);
     bumount();
 
     

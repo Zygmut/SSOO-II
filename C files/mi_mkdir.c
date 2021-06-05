@@ -16,7 +16,12 @@ int main(int argc, char **argv){
             return -1;
         }
         
-        bmount(argv[1]);
+
+        if (bmount(argv[1]) == -1){
+            fprintf(stderr,"Error while mounting\n");
+            return -1;
+        }
+
 
         if (mi_creat(argv[3],atoi(argv[2])) == -1){
             bumount();

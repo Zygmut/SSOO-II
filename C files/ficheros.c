@@ -5,9 +5,9 @@
  * 
  * Input:   ninodo             => Nº del inodo a leer
  *          *buf_original      => ---
-            offset             => ---
-            nbytes             => ---
- 
+ *          offset             => ---
+ *          nbytes             => ---
+ *
  * Output:  cantidad de bytes escritos realmente
  * Using:   none 
  */ 
@@ -23,7 +23,6 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     leer_inodo(ninodo, &inodo);
     
     if ((inodo.permisos & 2) == 2) {
-        
 
         mi_waitSem();
         int nbfisico = traducir_bloque_inodo(ninodo, primerBL, 1);
@@ -147,7 +146,6 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
         unsigned char buf_bloque[BLOCKSIZE];
         
         int nbfisico = traducir_bloque_inodo(ninodo, primerBL, 0);
-        
 
         // Todo cabe en un solo bloque
         if(primerBL == ultimoBL){ 
@@ -176,9 +174,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
             
             // Bloques intermedios
             for(int i = primerBL + 1; i < ultimoBL; i ++){
-                
                 nbfisico = traducir_bloque_inodo(ninodo, i, 0);
-               
 
                 if(nbfisico != -1){
                     if(bread(nbfisico, buf_bloque) == -1){ 
@@ -207,11 +203,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
             bytes_leidos += desp2 + 1;
         }
 
-       
-
         return bytes_leidos;
-        
-
     }else{
         fprintf(stderr, "Inodo[%d] doesn't have reading privileges\n", ninodo);
         return -1;
