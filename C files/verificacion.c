@@ -75,7 +75,7 @@ int main(int argc,char **argv){
         // leer prueba.dat de esta entrada        
         while(mi_read(dir_prueba, buffer_escrituras, bytes_leidos, sizeof(buffer_escrituras)) > 0 ){
 
-            for(int j = 0; j < length(buffer_escrituras) ; j++){
+            for(int j = 0; j < length(buffer_escrituras); j++){
                 if(info[i].pid == buffer_escrituras[j].pid){ 
                     if(!contadorEscriturasValidadas){ 
                         info[i].PrimeraEscritura = buffer_escrituras[j];
@@ -98,6 +98,12 @@ int main(int argc,char **argv){
                                 info[i].UltimaEscritura = buffer_escrituras[j];
                             }
                         }
+
+                        if(buffer_escrituras[j].nRegistro < info[i].MenorPosicion.nRegistro){
+                            info[i].MenorPosicion = buffer_escrituras[j];
+                        } else if(buffer_escrituras[j].nRegistro > info[i].MayorPosicion.nRegistro){
+                            info[i].MayorPosicion = buffer_escrituras[j];
+                        }
                        
                     }
                     contadorEscriturasValidadas ++;
@@ -106,13 +112,33 @@ int main(int argc,char **argv){
             memset(buffer_escrituras, 0, sizeof(buffer_escrituras)); 
         }
         //obtener la escritura de la ultima posición //será delimitada por el EOF
+
         //Añadir la información del struct info al fichero informe.txt por el final
-        printRegistro();
+        guardarRegistro(info[i], str_informe, i);
+        //printRegistro(info[i]);
+        printf("%d) %d escrituras validadas en %s", i, contadorEscriturasValidadas, dir_prueba);
     }
 
     bumount();
 }
 
-void printRegistro(){ //metodo para printear los registros
+void guardarRegistro(struct INFORMACION info, char *str_informe, int offset){ //metodo para printear los registros
+    /* hay que formatear el guardado en el archivo para que al leerlo salga asi:
+    [Placeholders]
 
+    PID: 16776
+    Numero de escrituras: 50
+    Primera Escritura   1       327582  Wed May 23 13:38:28 2018
+    Ultima escritura    50      nEscritura Fecha
+    Menor Posicion      22
+    Mayor Posicion      46
+
+    PID: 16776
+    Numero de escrituras: 50
+    Primera Escritura   1       327582  Wed May 23 13:38:28 2018
+    Ultima escritura    50      nEscritura Fecha
+    Menor Posicion      22
+    Mayor Posicion      46
+    */
+    mi_write(str_informe, &info, offset * sizeof(info), sizeof(info));
 }
