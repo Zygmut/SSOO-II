@@ -1,3 +1,4 @@
+// Jaume Julia Vallespir, Ruben Palmer Perez, Marc Torres Torres
 #include "ficheros.h"
 
 #define ERROR_CAMINO_INCORRECTO -1

@@ -1,5 +1,5 @@
+// Jaume Julia Vallespir, Ruben Palmer Perez, Marc Torres Torres
 #include "verificacion.h"
-
 
 int main(int argc,char **argv){
     

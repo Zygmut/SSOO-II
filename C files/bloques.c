@@ -1,4 +1,4 @@
-// Jaume, Marc, Ruben
+// Jaume Julia Vallespir, Ruben Palmer Perez, Marc Torres Torres
 #include "bloques.h"
 #include "semaforo_mutex_posix.h"
 

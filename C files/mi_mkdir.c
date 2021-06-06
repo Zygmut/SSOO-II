@@ -1,3 +1,4 @@
+// Jaume Julia Vallespir, Ruben Palmer Perez, Marc Torres Torres
 #include "directorios.h"
 
 int main(int argc, char **argv){

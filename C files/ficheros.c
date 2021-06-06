@@ -1,4 +1,4 @@
-// Jaume, Marc, Ruben
+// Jaume Julia Vallespir, Ruben Palmer Perez, Marc Torres Torres
 #include "ficheros.h"
 /*
  * Escribe el contenido procedente de un buffer de memoria, buf_original, de tamaño nbytes, en un fichero/directorio

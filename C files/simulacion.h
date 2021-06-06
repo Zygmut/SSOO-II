@@ -1,4 +1,4 @@
-
+// Jaume Julia Vallespir, Ruben Palmer Perez, Marc Torres Torres
 #include "directorios.h"
 #include <sys/wait.h>
 #include <signal.h>

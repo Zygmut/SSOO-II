@@ -1,3 +1,4 @@
+ // Jaume Julia Vallespir, Ruben Palmer Perez, Marc Torres Torres
  /* semaforo_mutex_posix.h */
 #include "directorios.h"
 #include <stdlib.h>

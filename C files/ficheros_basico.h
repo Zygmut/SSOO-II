@@ -1,4 +1,4 @@
-// Jaume, Marc, Ruben
+// Jaume Julia Vallespir, Ruben Palmer Perez, Marc Torres Torres
 #include "bloques.h"
 #include <limits.h> // Valor muy grande para el enlace de Inodos
 #include <time.h>   // ctime, atime & mtime 

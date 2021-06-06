@@ -1,3 +1,4 @@
+// Jaume Julia Vallespir, Ruben Palmer Perez, Marc Torres Torres
 #include "simulacion.h"
 
 struct INFORMACION{

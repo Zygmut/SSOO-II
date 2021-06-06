@@ -1,4 +1,4 @@
-// Jaume, Marc, Ruben
+// Jaume Julia Vallespir, Ruben Palmer Perez, Marc Torres Torres
 #include "ficheros.h"
 
 int main(int argc, char **argv){

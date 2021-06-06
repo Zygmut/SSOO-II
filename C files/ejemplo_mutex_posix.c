@@ -1,3 +1,4 @@
+// Jaume Julia Vallespir, Ruben Palmer Perez, Marc Torres Torres
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>

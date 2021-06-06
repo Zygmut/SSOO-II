@@ -1,4 +1,4 @@
-// Jaume, Marc, Ruben
+// Jaume Julia Vallespir, Ruben Palmer Perez, Marc Torres Torres
 #include "directorios.h"
 
 // Declaraciones de funciones
