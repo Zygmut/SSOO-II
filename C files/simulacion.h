@@ -3,6 +3,10 @@
 #include <sys/wait.h>
 #include <signal.h>
 
+#define NUMPROCESOS 100
+#define NUMESCRITURAS 50
+#define REGMAX 500000
+
 struct REGISTRO { //sizeof(struct REGISTRO): 24
    time_t fecha; //Precisión segundos
    pid_t pid; //PID del proceso que lo ha creado

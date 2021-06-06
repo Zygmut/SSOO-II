@@ -9,3 +9,4 @@ struct INFORMACION{
     struct REGISTRO MayorPosicion;
 };
 
+void guardarRegistro(struct INFORMACION info, char *str_informe, int *offset);

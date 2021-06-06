@@ -28,7 +28,7 @@ int main(int argc, char **argv){
     strftime(adate, 24, "%a %d-%m-%Y %H:%M:%S", info = localtime(&p_stat.atime));
     strftime(cdate, 24, "%a %d-%m-%Y %H:%M:%S", info = localtime(&p_stat.ctime));
     strftime(mdate, 24, "%a %d-%m-%Y %H:%M:%S", info = localtime(&p_stat.mtime));
-    printf("\nDATOS INODO [%i]\n");
+    printf("\nDATOS INODO [%i]\n", ninodo);
     printf("tipo: %c\n", p_stat.tipo);
     printf("permisos: %i\n", p_stat.permisos);
     printf("atime: %s\n", adate);

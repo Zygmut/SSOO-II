@@ -1,7 +1,5 @@
 #include "simulacion.h"
-#define NUMPROCESOS 100
-#define NUMESCRITURAS 50
-#define REGMAX 500000
+
 
 int acabados = 0;
 
@@ -81,7 +79,7 @@ int main(int argc,char **argv){
                 registro.nRegistro = rand() % REGMAX;
                 
                 mi_write(path_f, &registro, registro.nRegistro * sizeof(struct REGISTRO), sizeof(struct REGISTRO));
-                fprintf(stderr,"[simulacion.c -> Escritura %d en %s]\n", nescritura, path_f);
+                // fprintf(stderr,"[simulacion.c -> Escritura %d en %s]\n", nescritura, path_f);
                 usleep(50000);
                 if(nescritura == NUMESCRITURAS -1){
                     fprintf(stderr,"Proceso %d: Completadas %d escrituras en %s\n", proceso, NUMESCRITURAS, path_f);

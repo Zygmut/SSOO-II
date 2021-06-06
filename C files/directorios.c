@@ -13,8 +13,7 @@ static struct UltimaEntrada UltimaEntradaEscritura;
  * 
  * Output: -1 if error, 0 otherwise 
  */ 
-int extraer_camino(const char *camino, char *inicial, char *final, char *tipo)
-{
+int extraer_camino(const char *camino, char *inicial, char *final, char *tipo){
     //El camino ha de empezar por /
     if (camino[0] == '/'){
 
