@@ -72,6 +72,7 @@ int main(int argc,char **argv){
         memset(buffer_escrituras, 0, sizeof(buffer_escrituras));
         int bytes_leidos = 0;
         int contadorEscriturasValidadas = 0;
+        int offset = 0;
         // leer prueba.dat de esta entrada        
         while(mi_read(dir_prueba, buffer_escrituras, bytes_leidos, sizeof(buffer_escrituras)) > 0 ){
 
@@ -114,7 +115,7 @@ int main(int argc,char **argv){
         //obtener la escritura de la ultima posición //será delimitada por el EOF
 
         //Añadir la información del struct info al fichero informe.txt por el final
-        guardarRegistro(info[i], str_informe, &i);
+        guardarRegistro(info[i], str_informe, &offset);
         //printRegistro(info[i]);
         printf("%d) %d escrituras validadas en %s", i, contadorEscriturasValidadas, dir_prueba);
     }
@@ -122,7 +123,7 @@ int main(int argc,char **argv){
     bumount();
 }
 
-void guardarRegistro(struct INFORMACION info, char *str_informe, int offset){ //metodo para printear los registros
+void guardarRegistro(struct INFORMACION info, char *str_informe, int *offset){ //metodo para printear los registros
     /* hay que formatear el guardado en el archivo para que al leerlo salga asi:
     [Placeholders]
 
@@ -140,25 +141,25 @@ void guardarRegistro(struct INFORMACION info, char *str_informe, int offset){ //
     Menor Posicion      22
     Mayor Posicion      46
     */
-   char primerafecha[24], ultimafecha[24], maxfecha[24], minfecha[24];
-        struct tm *tp;
-        tp = localtime(&info.PrimeraEscritura.fecha);
-        strftime(primerafecha, sizeof(primerafecha), "%a %Y-%m-%d %H:%M:%S", tp);
-        tp = localtime(&info.UltimaEscritura.fecha);
-        strftime(ultimafecha, sizeof(ultimafecha), "%a %Y-%m-%d %H:%M:%S", tp);
-        tp = localtime(&info.MenorPosicion.fecha);
-        strftime(minfecha, sizeof(minfecha), "%a %Y-%m-%d %H:%M:%S", tp);
-        tp = localtime(&info.MayorPosicion.fecha);
-        strftime(maxfecha, sizeof(maxfecha), "%a %Y-%m-%d %H:%M:%S", tp);
-        unsigned int size = BLOCKSIZE;
-        char *outputBuffer[size];
-        memset(outputBuffer, 0, size);
-        sprintf(outputBuffer, "PID: %d\nNumero de escrituras:\t%d\nPrimera escritura: \t%d\t%d\t%s\nUltima escritura:\t%d\t%d\t%s\nMenor posición:\t\t%d\t%d\t%s\nMayor posición:\t\t%d\t%d\t%s\n\n",
-                info.pid, info.nEscrituras, info.PrimeraEscritura.nEscritura,
-                info.PrimeraEscritura.nRegistro, minfecha, info.UltimaEscritura.nEscritura,
-                info.UltimaEscritura.nRegistro, ultimafecha, info.MenorPosicion.nEscritura,
-                info.MenorPosicion.nRegistro, minfecha, info.MayorPosicion.nEscritura,
-                info.MayorPosicion.nRegistro, maxfecha);
+    char primerafecha[24], ultimafecha[24], maxfecha[24], minfecha[24];
+    struct tm *tp;
+    tp = localtime(&info.PrimeraEscritura.fecha);
+    strftime(primerafecha, sizeof(primerafecha), "%a %Y-%m-%d %H:%M:%S", tp);
+    tp = localtime(&info.UltimaEscritura.fecha);
+    strftime(ultimafecha, sizeof(ultimafecha), "%a %Y-%m-%d %H:%M:%S", tp);
+    tp = localtime(&info.MenorPosicion.fecha);
+    strftime(minfecha, sizeof(minfecha), "%a %Y-%m-%d %H:%M:%S", tp);
+    tp = localtime(&info.MayorPosicion.fecha);
+    strftime(maxfecha, sizeof(maxfecha), "%a %Y-%m-%d %H:%M:%S", tp);
+    unsigned int size = BLOCKSIZE;
+    char *outputBuffer[size];
+    memset(outputBuffer, 0, size);
+    sprintf(outputBuffer, "PID: %d\nNumero de escrituras:\t%d\nPrimera escritura: \t%d\t%d\t%s\nUltima escritura:\t%d\t%d\t%s\nMenor posición:\t\t%d\t%d\t%s\nMayor posición:\t\t%d\t%d\t%s\n\n",
+            info.pid, info.nEscrituras, info.PrimeraEscritura.nEscritura,
+            info.PrimeraEscritura.nRegistro, minfecha, info.UltimaEscritura.nEscritura,
+            info.UltimaEscritura.nRegistro, ultimafecha, info.MenorPosicion.nEscritura,
+            info.MenorPosicion.nRegistro, minfecha, info.MayorPosicion.nEscritura,
+            info.MayorPosicion.nRegistro, maxfecha);
 
     offset += mi_write(str_informe, &info, offset, BLOCKSIZE); //el offset deberia ir incrementando a medida que se hacen escrituras en el archivo
 }
